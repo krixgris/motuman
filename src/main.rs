@@ -1,3 +1,5 @@
+mod osc;
+
 use std::env;
 use std::process;
 
@@ -15,4 +17,18 @@ fn main() {
         eprintln!("Application error: {e}");
         process::exit(1);
     }
+
+    let client = osc::OscClient::new("192.168.1.43:8000").unwrap();
+    let result = client.send("/test/whatelsegoesinhere");
+    if let Err(e) = result {
+        println!("Error sending OSC message: {}", e);
+    }
+
+    // let message = osc_packet::Message {
+    //     address: "/test".to_string(),
+    //     arguments: Some(vec![osc_packet::OscType::Int(42)]),
+    // };
+    // let bytes = message.to_packet().unwrap();
+    // let result = client.send(&bytes);
+    // println!("{:?}", result);
 }
