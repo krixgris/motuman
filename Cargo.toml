@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 rosc = "0.8"
+toml = "0.5.8"
