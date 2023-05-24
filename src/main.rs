@@ -13,8 +13,9 @@ fn main() {
         eprintln!("Problem parsing arguments: {err}");
         process::exit(1);
     });
+    dbg!(&config.ip_address);
 
-    let motu = motu::Motu::new("127.0.0.1", 8000).unwrap();
+    let motu = motu::Motu::new(&config.ip_address, 8000).unwrap();
 
     if let Err(e) = motu.run(&config) {
         eprintln!("Application error: {e}");

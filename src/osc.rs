@@ -44,7 +44,7 @@ impl OscClient {
         //     args: vec![color],  // Add the color as an argument
         // };
         let bytes = rosc::encoder::encode(&OscPacket::Message(message)).unwrap();
-        self.socket.send_to(&bytes, "127.0.0.1:8000").unwrap();
+        self.socket.send_to(&bytes, &self.server_address).unwrap();
         
         Ok(())
     }

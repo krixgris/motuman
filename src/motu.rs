@@ -11,7 +11,7 @@ pub struct Motu {
 
 impl Motu {
     pub fn new(ip_address: &str, port: u16) -> Result<Motu, Box<dyn Error>> {
-        let client = osc::OscClient::new(format!("{}:{}", ip_address, port).as_str())?;
+        let client = osc::OscClient::new(format!("{}", ip_address).as_str())?;
         Ok(Motu { client })
     }
 

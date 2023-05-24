@@ -6,5 +6,5 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rosc = "0.8"
+rosc = "0.10.1"
 toml = "0.5.8"
