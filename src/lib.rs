@@ -3,6 +3,8 @@ use std::fs;
 use std::error::Error;
 use toml::Value;
 
+pub mod motu;
+
 pub struct Config {
     // pub query: String,
     // pub file_path: String,

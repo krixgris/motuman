@@ -1,12 +1,8 @@
-mod osc;
-mod motu;
-
-
 use std::env;
 use std::process;
 
 use motuman::Config;
-// use motuman::motu::Motu;
+use motuman::motu;
 
 fn main() {
     let config = Config::build(env::args()).unwrap_or_else(|err| {

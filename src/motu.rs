@@ -1,9 +1,9 @@
 // mod osc;
 use std::error::Error;
 
-use crate::osc;
 use crate::Config;
 
+mod osc;
 
 pub struct Motu {
     client: osc::OscClient,
