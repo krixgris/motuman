@@ -23,20 +23,6 @@ impl Config {
 
         let network = config.get("network").and_then(|v| v.as_table()).ok_or("Missing [network] table")?;
         let ip_address = network.get("ip_address").and_then(|v| v.as_str()).ok_or("Missing ip_address field")?.to_string();
-        // let ip_address = config.get("network").and_then(|v| v.as_table()).ok_or("Missing [network] table")?.get("ip_address").and_then(|v| v.as_str()).ok_or("Missing ip_address field")?.to_string(); 
-
-        args.next();
-
-        // let ip_address = match args.next() {
-        //     Some(arg) => arg,
-        //     None => return Err("Didn't get an IP address".into()),
-        // };
-
-        // let query = match args.next() {
-        //     Some(arg) => arg,
-        //     None => return Err("Didn't get a query string"),
-        // };
-        // let config_file = fs::read_to_string(dbg!("./config.toml"))?;
 
         let mut monitor = false;
         while let Some(arg) = args.next() {
@@ -50,12 +36,6 @@ impl Config {
             //     return Err(format!("Invalid argument: {}", arg));
             // }
         }
-        // let file_path = match args.next() {
-        //     Some(arg) => arg,
-        //     None => return Err("Didn't get a file path"),
-        // };
-
-        // let ignore_case = env::var("IGNORE_CASE").is_ok();
 
         Ok(Config {
             ip_address,
