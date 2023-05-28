@@ -1,9 +1,8 @@
 use std::env;
 use std::process;
 
-// use motuman::config;
-use motuman::motu;
 use motuman::config;
+use motuman::motu;
 
 fn main() {
     let config = config::Config::build(env::args()).unwrap_or_else(|err| {
