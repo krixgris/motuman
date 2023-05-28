@@ -5,6 +5,14 @@ use crate::config::Config;
 
 mod osc;
 
+enum MotuCommand {
+    EnableMonitoring,
+    DisableMonitoring,
+    PrintSettings,
+    Volume(f32),
+    Send(f32)
+}
+
 pub struct Motu {
     client: osc::OscClient,
 }
