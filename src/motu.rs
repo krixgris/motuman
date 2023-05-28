@@ -1,7 +1,9 @@
 // mod osc;
 use std::error::Error;
 
-use crate::Config;
+// use crate::config::Config;
+// use motuman::config::Config;
+use crate::config::Config;
 
 mod osc;
 
@@ -10,8 +12,8 @@ pub struct Motu {
 }
 
 impl Motu {
-    pub fn new(ip_address: &str, port: u16) -> Result<Motu, Box<dyn Error>> {
-        let client = osc::OscClient::new(format!("{}", ip_address).as_str())?;
+    pub fn new(ip_address: &str) -> Result<Motu, Box<dyn Error>> {
+        let client = osc::OscClient::new(ip_address)?;
         Ok(Motu { client })
     }
 
