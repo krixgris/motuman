@@ -5,18 +5,18 @@ use crate::config::Config;
 
 mod osc;
 
-enum Channel {
-    Number(Option<i32>),
-    Description(String),
-    Stereo(Option<bool>),
+struct Channel {
+    number: Option<i32>,
+    description: String,
+    stereo: Option<bool>,
 }
 
 enum MotuCommand {
     EnableMonitoring,
     DisableMonitoring,
     PrintSettings,
-    Volume(Channel),
-    Send(Channel,Channel)
+    Volume(Option<Channel>, f32),
+    Send(Option<Channel>, Option<Channel>, f32),
 }
 
 pub struct Motu {
