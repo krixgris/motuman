@@ -5,13 +5,22 @@ use crate::config::Config;
 
 mod osc;
 
-struct Channel {
+pub struct Channel {
     number: Option<i32>,
     description: String,
     stereo: Option<bool>,
 }
+impl Channel {
+    pub(crate) fn new(arg: i32) -> Channel {
+        Channel {
+            number: Some(arg),
+            description: String::from(""),
+            stereo: None,
+        }
+    }
+}
 
-enum MotuCommand {
+pub enum MotuCommand {
     EnableMonitoring,
     DisableMonitoring,
     PrintSettings,
@@ -59,5 +68,48 @@ impl Motu {
 
     pub fn print_settings(&self) {
         // Code to print current settings goes here
+    }
+    pub fn send(&self, command: MotuCommand) -> Result<(), Box<dyn Error>> {
+        match command {
+            MotuCommand::EnableMonitoring => {
+                self.enable_monitoring();
+            }
+            MotuCommand::DisableMonitoring => {
+                self.disable_monitoring();
+            }
+            MotuCommand::PrintSettings => {
+                self.print_settings();
+            }
+            MotuCommand::Volume(channel, volume) => {
+                let channel_number = channel.map(|c| c.number.unwrap_or(0));
+                println!(
+                    "Set volume {} on channel {}",
+                    volume,
+                    channel_number.unwrap_or(0)
+                );
+                // self.client.send("/volume", (channel_number, volume))?;
+            }
+            MotuCommand::Send(channel, aux_channel, value) => {
+                let channel_number = channel.map(|c| c.number.unwrap_or(0));
+                let aux_channel_number = aux_channel.map(|c| c.number.unwrap_or(0));
+                let formatted_string = format!(
+                    "channel({})/aux/send_channel({})/value({})",
+                    channel_number.unwrap_or(0),
+                    aux_channel_number.unwrap_or(0),
+                    value
+                );
+                println!(
+                    "Send {} to channel {} aux {}",
+                    value,
+                    channel_number.unwrap_or(0),
+                    aux_channel_number.unwrap_or(0)
+                );
+                
+                self.client.send(formatted_string.as_str())?;
+                
+            }
+        }
+
+        Ok(())
     }
 }
