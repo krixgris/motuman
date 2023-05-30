@@ -11,7 +11,7 @@ pub struct Channel {
     stereo: Option<bool>,
 }
 impl Channel {
-    pub(crate) fn new(arg: i32) -> Channel {
+    pub fn new(arg: i32) -> Channel {
         Channel {
             number: Some(arg),
             description: String::from(""),
