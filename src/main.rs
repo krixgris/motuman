@@ -1,5 +1,8 @@
 use std::env;
+// use std::fs::File;
+// use std::io::Write;
 use std::process;
+// use std::time::{SystemTime, UNIX_EPOCH};
 
 use motuman::config;
 use motuman::motu;
@@ -17,4 +20,22 @@ fn main() {
         eprintln!("Application error: {e}");
         process::exit(1);
     }
+
+    // // Get the current time as a UNIX timestamp
+    // let timestamp = SystemTime::now()
+    //     .duration_since(UNIX_EPOCH)
+    //     .unwrap()
+    //     .as_secs();
+
+    // // Create or open a file in the same directory as the executable
+    // let mut file = File::create("output.txt").unwrap_or_else(|err| {
+    //     eprintln!("Problem creating file: {err}");
+    //     process::exit(1);
+    // });
+
+    // // Write the timestamp to the file
+    // writeln!(file, "{}", timestamp).unwrap_or_else(|err| {
+    //     eprintln!("Problem writing to file: {err}");
+    //     process::exit(1);
+    // });
 }

@@ -10,7 +10,7 @@ mod tests {
 
     #[test]
     fn test_enable_monitoring() -> Result<(), Box<dyn Error>> {
-        let motu = Motu::new("127.0.0.1:1234")?;
+        let motu = Motu::new("127.0.0.1:8000")?;
         motu.send(MotuCommand::EnableMonitoring)?;
         // Add assertions here to check that monitoring is enabled
         Ok(())
@@ -18,7 +18,7 @@ mod tests {
 
     #[test]
     fn test_disable_monitoring() -> Result<(), Box<dyn Error>> {
-        let motu = Motu::new("127.0.0.1:1234")?;
+        let motu = Motu::new("127.0.0.1:8000")?;
         motu.send(MotuCommand::DisableMonitoring)?;
         // Add assertions here to check that monitoring is disabled
         Ok(())
@@ -26,7 +26,7 @@ mod tests {
 
     #[test]
     fn test_print_settings() -> Result<(), Box<dyn Error>> {
-        let motu = Motu::new("127.0.0.1:1234")?;
+        let motu = Motu::new("127.0.0.1:8000")?;
         motu.send(MotuCommand::PrintSettings)?;
         // Add assertions here to check that settings are printed
         Ok(())
@@ -34,8 +34,8 @@ mod tests {
 
     #[test]
     fn test_volume() -> Result<(), Box<dyn Error>> {
-        let motu = Motu::new("127.0.0.1:1234")?;
-        motu.send(MotuCommand::Volume(Some(Channel::new(1)), 0.5))?;
+        let motu = Motu::new("127.0.0.1:8000")?;
+        motu.send(MotuCommand::Volume(Some(Channel::new(1)), 1.0))?;
         // Add assertions here to check that volume is set correctly
         Ok(())
     }

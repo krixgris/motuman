@@ -1,5 +1,7 @@
+use rosc::OscMessage;
+use rosc::OscPacket;
+use rosc::OscType;
 use std::error::Error;
-
 // use motuman::config::Config;
 use crate::config::Config;
 
@@ -11,7 +13,7 @@ pub struct Channel {
     stereo: Option<bool>,
 }
 impl Channel {
-    pub(crate) fn new(arg: i32) -> Channel {
+    pub fn new(arg: i32) -> Channel {
         Channel {
             number: Some(arg),
             description: String::from(""),
@@ -19,6 +21,26 @@ impl Channel {
         }
     }
 }
+
+pub trait OscSender {
+    fn new(address: &str, args: Vec<OscType>) -> Self;
+}
+
+impl OscSender for OscMessage {
+    fn new(address: &str, args: Vec<OscType>) -> OscMessage {
+        OscMessage {
+            addr: address.to_string(),
+            args,
+        }
+    }
+}
+
+// pub fn (address: &str, args: Vec<OscType>) -> OscMessage {
+//     OscMessage {
+//         addr: address.to_string(),
+//         args,
+//     }
+// }
 
 pub enum MotuCommand {
     EnableMonitoring,
@@ -53,7 +75,7 @@ impl Motu {
     }
 
     pub fn test_osc(&self) {
-        self.client.send("/info").unwrap();
+        self.client.send(OscPacket::Message(OscMessage::new("/info", vec![]))).unwrap();
     }
 
     pub fn enable_monitoring(&self) {
@@ -70,46 +92,34 @@ impl Motu {
         // Code to print current settings goes here
     }
     pub fn send(&self, command: MotuCommand) -> Result<(), Box<dyn Error>> {
-        match command {
-            MotuCommand::EnableMonitoring => {
-                self.enable_monitoring();
-            }
-            MotuCommand::DisableMonitoring => {
-                self.disable_monitoring();
-            }
+        let message = match command {
+            MotuCommand::EnableMonitoring => OscMessage::new("/enable_monitoring", vec![]),
+            MotuCommand::DisableMonitoring => OscMessage::new("/disable_monitoring", vec![]),
             MotuCommand::PrintSettings => {
-                self.print_settings();
+                // Code to create OscMessage for printing settings goes here
+                OscMessage::new("/print_settings", vec![])
             }
             MotuCommand::Volume(channel, volume) => {
                 let channel_number = channel.map(|c| c.number.unwrap_or(0));
-                println!(
-                    "Set volume {} on channel {}",
-                    volume,
-                    channel_number.unwrap_or(0)
-                );
-                // self.client.send("/volume", (channel_number, volume))?;
+                let address = format!("{}/Fader", channel_number.unwrap_or(0));
+                
+                OscMessage::new(&address, vec![OscType::Float(volume)])
             }
             MotuCommand::Send(channel, aux_channel, value) => {
                 let channel_number = channel.map(|c| c.number.unwrap_or(0));
                 let aux_channel_number = aux_channel.map(|c| c.number.unwrap_or(0));
-                let formatted_string = format!(
-                    "channel({})/aux/send_channel({})/value({})",
-                    channel_number.unwrap_or(0),
-                    aux_channel_number.unwrap_or(0),
-                    value
-                );
-                println!(
-                    "Send {} to channel {} aux {}",
-                    value,
+                let address = format!(
+                    "{}/Aux/{}/Fader",
                     channel_number.unwrap_or(0),
                     aux_channel_number.unwrap_or(0)
                 );
                 
-                self.client.send(formatted_string.as_str())?;
-                
+                OscMessage::new(&address, vec![OscType::Float(value)])
             }
-        }
+        };
 
+        let packet = OscPacket::Message(message);
+        self.client.send(packet)?;
         Ok(())
     }
 }
