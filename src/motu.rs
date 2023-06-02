@@ -23,14 +23,14 @@ impl Channel {
 }
 
 pub trait OscSender {
-    fn new(address: &str, args: Vec<OscType>) -> Self;
+    fn new(address: &str, value: f32) -> Self;
 }
 
 impl OscSender for OscMessage {
-    fn new(address: &str, args: Vec<OscType>) -> OscMessage {
+    fn new(address: &str, value: f32) -> OscMessage {
         OscMessage {
             addr: address.to_string(),
-            args,
+            args: vec![OscType::Float(value)],
         }
     }
 }
@@ -75,7 +75,7 @@ impl Motu {
     }
 
     pub fn test_osc(&self) {
-        self.client.send(OscPacket::Message(OscMessage::new("/info", vec![]))).unwrap();
+        self.client.send(OscPacket::Message(OscMessage::new("/info", 1.0))).unwrap();
     }
 
     pub fn enable_monitoring(&self) {
@@ -93,17 +93,17 @@ impl Motu {
     }
     pub fn send(&self, command: MotuCommand) -> Result<(), Box<dyn Error>> {
         let message = match command {
-            MotuCommand::EnableMonitoring => OscMessage::new("/enable_monitoring", vec![]),
-            MotuCommand::DisableMonitoring => OscMessage::new("/disable_monitoring", vec![]),
+            MotuCommand::EnableMonitoring => OscMessage::new("/enable_monitoring", 1.0),
+            MotuCommand::DisableMonitoring => OscMessage::new("/disable_monitoring", 0.0),
             MotuCommand::PrintSettings => {
                 // Code to create OscMessage for printing settings goes here
-                OscMessage::new("/print_settings", vec![])
+                OscMessage::new("/print_settings", 1.0)
             }
             MotuCommand::Volume(channel, volume) => {
                 let channel_number = channel.map(|c| c.number.unwrap_or(0));
                 let address = format!("{}/Fader", channel_number.unwrap_or(0));
                 
-                OscMessage::new(&address, vec![OscType::Float(volume)])
+                OscMessage::new(&address, volume)
             }
             MotuCommand::Send(channel, aux_channel, value) => {
                 let channel_number = channel.map(|c| c.number.unwrap_or(0));
@@ -114,7 +114,7 @@ impl Motu {
                     aux_channel_number.unwrap_or(0)
                 );
                 
-                OscMessage::new(&address, vec![OscType::Float(value)])
+                OscMessage::new(&address, value)
             }
         };
 
