@@ -14,7 +14,7 @@ fn main() {
     });
     dbg!(&config.ip_address);
 
-    let motu = motu::Motu::new(&config.ip_address).unwrap();
+    let motu = motu::Motu::new(&config.ip_address, &config).unwrap();
 
     if let Err(e) = motu.run(&config) {
         eprintln!("Application error: {e}");

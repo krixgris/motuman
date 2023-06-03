@@ -1,2 +1,17 @@
 [network]
 ip_address = "127.0.0.1:8000"
+
+[monitor_groups]
+group1 = 0
+group2 = 2
+group3 = 4
+
+[aux_channels]
+aux1 = 1
+aux2 = 2
+aux3 = 3
+
+[channels]
+channel1 = 1
+channel2 = 2
+channel3 = 3
