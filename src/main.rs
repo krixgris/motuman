@@ -1,4 +1,3 @@
-use std::env;
 // use std::fs::File;
 // use std::io::Write;
 use std::process;
@@ -12,21 +11,55 @@ use motuman::motu;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// Name of the person to greet
+    #[arg(short, long, default_value = "./config.toml")]
+    config: String,
     #[arg(short, long)]
-    name: String,
-
-    /// Number of times to greet
-    #[arg(short, long, default_value_t = 1)]
-    count: u8,
+    monitor: Option<bool>,
+    #[arg(long = "ip")]
+    ip_address: Option<String>,
+    #[arg(long = "port", default_value = "8000")]
+    port: Option<u16>,
 }
 
 fn main() {
     let args = Args::parse();
-    for _ in 0..args.count {
-        println!("Hello {}!", args.name)
+    println!("Args: {:?}", args);
+    let mut motu_commands: Vec<motu::MotuCommand> = vec![];
+
+    let monitor = args.monitor;
+    match monitor {
+        Some(true) => motu_commands.push(motu::MotuCommand::EnableMonitoring),
+        Some(false) => motu_commands.push(motu::MotuCommand::DisableMonitoring),
+        None => println!("No monitor mode"),
     }
-    let config = config::Config::build(env::args()).unwrap_or_else(|err| {
+
+    // motu_commands.push(motu::MotuCommand::Volume(
+    //     Some(motu::Channel::new(0)),
+    //     1.0,
+    // ));
+    // motu_commands.push(motu::MotuCommand::Send(
+    //     Some(motu::Channel::new(0)),
+    //     Some(motu::Channel::new(0)),
+    //     0.0,
+    // ));
+    // motu_commands.push(motu::MotuCommand::Send(
+    //     Some(motu::Channel::new(0)),
+    //     Some(motu::Channel::new(2)),
+    //     0.0,
+    // ));
+
+    let ip_address = {
+        match args.ip_address {
+            Some(ip) => Some(if ip.contains(':') {
+                ip
+            } else {
+                format!("{}:{}", ip, args.port.unwrap_or(8002))
+            }),
+            None => None,
+        }
+    };
+
+    let config = config::Config::build(args.config, ip_address).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {err}");
         process::exit(1);
     });
@@ -34,7 +67,7 @@ fn main() {
 
     let motu = motu::Motu::new(&config.ip_address, &config).unwrap();
 
-    if let Err(e) = motu.run(&config) {
+    if let Err(e) = motu.run(motu_commands) {
         eprintln!("Application error: {e}");
         process::exit(1);
     }

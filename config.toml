@@ -2,16 +2,30 @@
 ip_address = "127.0.0.1:8000"
 
 [monitor_groups]
-group1 = 0
-group2 = 2
-group3 = 4
+OT = 0
+Group3_4 = 2
+Resten = 4
 
 [aux_channels]
-aux1 = 1
-aux2 = 2
-aux3 = 3
+OT_AB = 0
+OT_CD = 2
+H90 = 4
+Space = 6
+Modular = 8
 
 [channels]
 channel1 = 1
 channel2 = 2
 channel3 = 3
+H90 = 0
+OT = 2
+Mod_1_2 = 4
+Mod_3_4 = 6
+PolyD = 36
+Pro1 = 31
+Super6 = 8
+CH32 = 32
+CH34 = 34
+CH35 = 35
+CH30 = 30
+Computer = 10

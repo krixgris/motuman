@@ -3,7 +3,7 @@ pub mod config;
 
 #[cfg(test)]
 mod tests {
-    use crate::motu::{Channel, MotuCommand, Motu};
+    use crate::{motu::{Channel, MotuCommand, Motu}};
 
     use super::*;
     use std::error::Error;
