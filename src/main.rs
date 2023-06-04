@@ -12,7 +12,7 @@ use motuman::motu;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    #[arg(long, default_value = "./config.toml")]
+    #[arg(long, default_value = "./motu_config.toml")]
     config: String,
     #[arg(short, long)]
     monitor: Option<bool>,
