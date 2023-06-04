@@ -11,14 +11,19 @@ use motuman::motu;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    #[arg(short, long, default_value = "./config.toml")]
+    #[arg(long, default_value = "./config.toml")]
     config: String,
     #[arg(short, long)]
     monitor: Option<bool>,
+    #[arg(short, long)]
+    channel: Option<i32>,
+    #[arg(short, long)]
+    volume: Option<f32>,
     #[arg(long = "ip")]
     ip_address: Option<String>,
     #[arg(long = "port", default_value = "8000")]
     port: Option<u16>,
+
 }
 
 fn main() {
@@ -31,6 +36,14 @@ fn main() {
         Some(true) => motu_commands.push(motu::MotuCommand::EnableMonitoring),
         Some(false) => motu_commands.push(motu::MotuCommand::DisableMonitoring),
         None => println!("No monitor mode"),
+    }
+    let volume = args.volume;
+    match volume {
+        Some(volume) => motu_commands.push(motu::MotuCommand::Volume(
+            Some(motu::Channel::new(args.channel.unwrap_or(0))),
+            volume,
+        )),
+        None => println!("No volume"),
     }
 
     // motu_commands.push(motu::MotuCommand::Volume(

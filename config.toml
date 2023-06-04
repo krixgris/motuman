@@ -14,18 +14,23 @@ Space = 6
 Modular = 8
 
 [channels]
-channel1 = 1
-channel2 = 2
-channel3 = 3
 H90 = 0
 OT = 2
-Mod_1_2 = 4
-Mod_3_4 = 6
-PolyD = 36
-Pro1 = 31
+Wavestate = 4
+Space = 6
 Super6 = 8
-CH32 = 32
-CH34 = 34
-CH35 = 35
-CH30 = 30
-Computer = 10
+WhatYouHear = 10
+Mod_3_4 = 22
+AR_Rimshot = 30
+Pro1 = 31
+Syntakt = 32
+AR_Kick = 34
+AR_Snare = 35
+PolyD = 36
+Mod_M1 = 42
+Mod_M2 = 43
+Mod_M3 = 44
+Mod_M4 = 45
+Mod_1_2 = 46
+
+

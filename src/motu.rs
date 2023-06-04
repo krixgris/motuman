@@ -79,9 +79,14 @@ impl Motu {
     }
 
     pub fn test_osc(&self) {
-        for (k, v) in &self.channels {
-            println!("{}: {}", k, v);
+        let mut keys: Vec<_> = self.channels.keys().collect();
+        keys.sort();
+        for key in keys {
+         println!("{}: {}", key, self.channels[key]);
         }
+        // for (k, v) in &self.channels {
+        //     println!("{}: {}", k, v);
+        // }
         // print all aux channels
         for (k, v) in &self.aux_channels {
             println!("{}: {}", k, v);
