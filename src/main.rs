@@ -1,7 +1,6 @@
 // use std::fs::File;
 // use std::io::Write;
 use std::process;
-use std::sync::mpsc::channel;
 // use std::time::{SystemTime, UNIX_EPOCH};
 
 use clap::Parser;
@@ -30,12 +29,21 @@ struct Args {
     aux_channel: Option<i32>,
     #[arg(short, long)]
     send_amount: Option<f32>,
+    #[arg(short, long)]
+    init: bool,
+
+
 }
 
 fn main() {
     let args = Args::parse();
     println!("Args: {:?}", args);
     let mut motu_commands: Vec<motu::MotuCommand> = vec![];
+
+    let init = args.init;
+    if init {
+        motu_commands.push(motu::MotuCommand::Init);
+    }
 
     let monitor = args.monitor;
     match monitor {

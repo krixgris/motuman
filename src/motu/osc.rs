@@ -1,12 +1,13 @@
 extern crate rosc;
 
-use rosc::OscMessage;
+// use rosc::OscMessage;
 use rosc::OscPacket;
-use rosc::OscType;
-use rosc::OscColor;
+// use rosc::OscType;
+// use rosc::OscColor;
 
 
-use std::net::{UdpSocket, ToSocketAddrs};
+// use std::net::{UdpSocket, ToSocketAddrs};
+use std::net::UdpSocket;
 
 pub struct OscClient {
     socket: UdpSocket,

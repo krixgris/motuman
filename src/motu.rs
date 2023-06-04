@@ -1,4 +1,4 @@
-use rosc::address;
+// use rosc::address;
 use rosc::OscMessage;
 use rosc::OscPacket;
 use rosc::OscType;
@@ -10,19 +10,19 @@ use crate::config::Config;
 mod osc;
 
 /// constant also needs the ip without port to be used in the http server
-const HTTP_PREFIX: &str = "/datastore";
+// const HTTP_PREFIX: &str = "/datastore";
 
 pub struct Channel {
     number: Option<i32>,
-    description: String,
-    stereo: Option<bool>,
+    // description: String,
+    // stereo: Option<bool>,
 }
 impl Channel {
     pub fn new(arg: i32) -> Channel {
         Channel {
             number: Some(arg),
-            description: String::from(""),
-            stereo: None,
+            // description: String::from(""),
+            // stereo: None,
         }
     }
 }
@@ -48,7 +48,7 @@ pub enum MotuCommand {
     Send(Option<Channel>, Option<Channel>, f32),
     Mute(Option<Channel>),
     Unmute(Option<Channel>),
-    Init
+    Init,
 }
 
 pub struct Motu {
@@ -71,6 +71,7 @@ impl Motu {
 
     pub fn run(&self, commands: Vec<MotuCommand>) -> Result<(), Box<dyn Error>> {
         for command in commands {
+            // add a small pause of 40ms between commands
             self.send(command)?;
         }
 
@@ -81,7 +82,6 @@ impl Motu {
 
     pub fn test_osc(&self) {
         // todo!()
-        
     }
 
     pub fn enable_monitoring(&self) -> Result<(), Box<dyn Error>> {
@@ -104,8 +104,7 @@ impl Motu {
         Ok(())
     }
 
-    pub fn print_settings(&self) -> Result<(), Box<dyn Error>>{
-        
+    pub fn print_settings(&self) -> Result<(), Box<dyn Error>> {
         let mut keys: Vec<_> = self.channels.keys().collect();
         keys.sort();
         println!("Channels:");
@@ -159,11 +158,48 @@ impl Motu {
                 let address = format!("/mix/group/{}/matrix/mute", channel_number.unwrap_or(0));
                 OscMessage::new(&address, 0.0)
             }
-            MotuCommand::Init => todo!(),
+            MotuCommand::Init => return self.init_settings(),
         };
 
         let packet = OscPacket::Message(message);
         self.client.send(packet)?;
+        Ok(())
+    }
+
+    fn init_settings(&self) -> Result<(), Box<dyn Error>> {
+        // loop through all channels and set the volume to 1.0, and then loop through all sends for each channel and set them to 0
+        // in a second loop after this, loop through all the monitor groups and unmute them
+        let delay: u64 = 2;
+        for (channel_index, channel_name) in &self.channels {
+            println!(
+                "Setting volume for channel {} {}",
+                channel_index, channel_name
+            );
+            let command = MotuCommand::Volume(Some(Channel::new(*channel_index as i32)), 1.0);
+            std::thread::sleep(std::time::Duration::from_millis(delay));
+            self.send(command)?;
+            for (aux_channel_index, aux_channel_name) in &self.aux_channels {
+                println!(
+                    "Setting send for channel {} {} to aux channel {} {}",
+                    channel_index, channel_name, aux_channel_index, aux_channel_name
+                );
+                let command = MotuCommand::Send(
+                    Some(Channel::new(*channel_index as i32)),
+                    Some(Channel::new(*aux_channel_index as i32)),
+                    0.0,
+                );
+                std::thread::sleep(std::time::Duration::from_millis(delay));
+                self.send(command)?;
+            }
+        }
+
+        for (group_index, group_name) in &self.monitor_groups {
+            println!("Unmuting monitor group {} {}", group_index, group_name);
+            let command = MotuCommand::Unmute(Some(Channel::new(*group_index as i32)));
+            std::thread::sleep(std::time::Duration::from_millis(delay));
+            self.send(command)?;
+        }
+
         Ok(())
     }
 }
