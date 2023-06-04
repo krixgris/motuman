@@ -74,7 +74,7 @@ fn main() {
             Some(ip) => Some(if ip.contains(':') {
                 ip
             } else {
-                format!("{}:{}", ip, args.port.unwrap_or(8002))
+                format!("{}:{}", ip, args.port.unwrap_or(8000))
             }),
             None => None,
         }
@@ -86,10 +86,16 @@ fn main() {
     });
     dbg!(&config.ip_address);
 
-    let motu = motu::Motu::new(&config.ip_address, &config).unwrap();
-
-    if let Err(e) = motu.run(motu_commands) {
-        eprintln!("Application error: {e}");
-        process::exit(1);
+    match motu::Motu::new(&config.ip_address, &config) {
+        Ok(motu) => {
+            if let Err(e) = motu.run(motu_commands) {
+                eprintln!("Application error: {e}");
+                process::exit(1);
+            }
+        },
+        Err(e) => {
+            eprintln!("Error creating Motu object: {e}");
+            process::exit(1);
+        }
     }
 }
