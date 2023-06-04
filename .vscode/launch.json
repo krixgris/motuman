@@ -20,8 +20,6 @@
                 }
             },
             "args": [
-                "-c",
-                "./config.toml"
             ],
             "cwd": "${workspaceFolder}"
         },

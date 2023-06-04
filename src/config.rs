@@ -1,14 +1,14 @@
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 use toml::Value;
-use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct Config {
     pub ip_address: String,
-    pub aux_channels: HashMap<String, usize>,
-    pub channels: HashMap<String, usize>,
-    pub monitor_groups: HashMap<String, usize>,
+    pub aux_channels: HashMap<usize, String>,
+    pub channels: HashMap<usize, String>,
+    pub monitor_groups: HashMap<usize, String>,
 }
 
 impl Config {
@@ -29,41 +29,67 @@ impl Config {
                 .to_string(),
         };
 
+        // let aux_channels = config
+        //     .get("aux_channels")
+        //     .and_then(|v| v.as_table())
+        //     .map(|table| {
+        //         table
+        //             .iter()
+        //             .filter_map(|(k, v)| v.as_integer().map(|i| (k.clone(), i as usize)))
+        //             .collect()
+        //     })
+        //     .unwrap_or_default();
         let aux_channels = config
             .get("aux_channels")
             .and_then(|v| v.as_table())
             .map(|table| {
                 table
                     .iter()
-                    .filter_map(|(k, v)| {
-                        v.as_integer().map(|i| (k.clone(), i as usize))
-                    })
+                    .filter_map(|(k, v)| v.as_str().map(|s| (k.parse().unwrap(), s.to_string())))
                     .collect()
             })
             .unwrap_or_default();
 
+        // let channels = config
+        //     .get("channels")
+        //     .and_then(|v| v.as_table())
+        //     .map(|table| {
+        //         table
+        //             .iter()
+        //             .filter_map(|(k, v)| {
+        //                 v.as_integer().map(|i| (k.clone(), i as usize))
+        //             })
+        //             .collect()
+        //     })
+        //     .unwrap_or_default();
         let channels = config
             .get("channels")
             .and_then(|v| v.as_table())
             .map(|table| {
                 table
                     .iter()
-                    .filter_map(|(k, v)| {
-                        v.as_integer().map(|i| (k.clone(), i as usize))
-                    })
+                    .filter_map(|(k, v)| v.as_str().map(|s| (k.parse().unwrap(), s.to_string())))
                     .collect()
             })
             .unwrap_or_default();
 
+        // let monitor_groups = config
+        //     .get("monitor_groups")
+        //     .and_then(|v| v.as_table())
+        //     .map(|table| {
+        //         table
+        //             .iter()
+        //             .filter_map(|(k, v)| v.as_integer().map(|i| (k.clone(), i as usize)))
+        //             .collect()
+        //     })
+        //     .unwrap_or_default();
         let monitor_groups = config
             .get("monitor_groups")
             .and_then(|v| v.as_table())
             .map(|table| {
                 table
                     .iter()
-                    .filter_map(|(k, v)| {
-                        v.as_integer().map(|i| (k.clone(), i as usize))
-                    })
+                    .filter_map(|(k, v)| v.as_str().map(|s| (k.parse().unwrap(), s.to_string())))
                     .collect()
             })
             .unwrap_or_default();

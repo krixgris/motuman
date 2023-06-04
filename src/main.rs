@@ -1,6 +1,7 @@
 // use std::fs::File;
 // use std::io::Write;
 use std::process;
+use std::sync::mpsc::channel;
 // use std::time::{SystemTime, UNIX_EPOCH};
 
 use clap::Parser;
@@ -23,7 +24,12 @@ struct Args {
     ip_address: Option<String>,
     #[arg(long = "port", default_value = "8000")]
     port: Option<u16>,
-
+    #[arg(short, long)]
+    list_channels: bool,
+    #[arg(short, long)]
+    aux_channel: Option<i32>,
+    #[arg(short, long)]
+    send_amount: Option<f32>,
 }
 
 fn main() {
@@ -37,13 +43,33 @@ fn main() {
         Some(false) => motu_commands.push(motu::MotuCommand::DisableMonitoring),
         None => println!("No monitor mode"),
     }
+    let channel = args.channel;
+    let send_to_channel = args.aux_channel;
+    let send_amount = args.send_amount;
     let volume = args.volume;
+    match send_to_channel {
+        Some(send_to_channel) => match channel {
+            Some(channel) => motu_commands.push(motu::MotuCommand::Send(
+                Some(motu::Channel::new(channel)),
+                Some(motu::Channel::new(send_to_channel)),
+                send_amount.unwrap_or(0.0),
+            )),
+            None => println!("No channel"),
+        },
+        None => println!("No send to channel"),
+    }
+
     match volume {
         Some(volume) => motu_commands.push(motu::MotuCommand::Volume(
             Some(motu::Channel::new(args.channel.unwrap_or(0))),
             volume,
         )),
         None => println!("No volume"),
+    }
+
+    let list_channels = args.list_channels;
+    if list_channels {
+        motu_commands.push(motu::MotuCommand::PrintSettings);
     }
 
     // motu_commands.push(motu::MotuCommand::Volume(

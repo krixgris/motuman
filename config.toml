@@ -2,35 +2,35 @@
 ip_address = "127.0.0.1:8000"
 
 [monitor_groups]
-OT = 0
-Group3_4 = 2
-Resten = 4
+0 = "OT"
+2 = "Group3_4"
+4 = "Resten"
 
 [aux_channels]
-OT_AB = 0
-OT_CD = 2
-H90 = 4
-Space = 6
-Modular = 8
+0 = "OT_AB"
+2 = "OT_CD"
+4 = "H90"
+6 = "Space"
+8 = "Modular"
 
 [channels]
-H90 = 0
-OT = 2
-Wavestate = 4
-Space = 6
-Super6 = 8
-WhatYouHear = 10
-Mod_3_4 = 22
-AR_Rimshot = 30
-Pro1 = 31
-Syntakt = 32
-AR_Kick = 34
-AR_Snare = 35
-PolyD = 36
-Mod_M1 = 42
-Mod_M2 = 43
-Mod_M3 = 44
-Mod_M4 = 45
-Mod_1_2 = 46
+0 = "H90"
+2 = "OT"
+4 = "Wavestate"
+6 = "Space"
+8 = "Super6"
+10 = "WhatYouHear"
+22 = "Mod_3_4"
+30 = "AR_Rimshot"
+31 = "Pro1"
+32 = "Syntakt"
+34 = "AR_Kick"
+35 = "AR_Snare"
+36 = "PolyD"
+42 = "Mod_M1"
+43 = "Mod_M2"
+44 = "Mod_M3"
+45 = "Mod_M4"
+46 = "Mod_1_2"
 
 

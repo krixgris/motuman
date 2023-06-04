@@ -1,7 +1,7 @@
+use rosc::address;
 use rosc::OscMessage;
 use rosc::OscPacket;
 use rosc::OscType;
-use rosc::address;
 use std::collections::HashMap;
 use std::error::Error;
 // use motuman::config::Config;
@@ -52,9 +52,9 @@ pub enum MotuCommand {
 
 pub struct Motu {
     client: osc::OscClient,
-    aux_channels: HashMap<String, usize>,
-    channels: HashMap<String, usize>,
-    monitor_groups: HashMap<String, usize>,
+    aux_channels: HashMap<usize, String>,
+    channels: HashMap<usize, String>,
+    monitor_groups: HashMap<usize, String>,
 }
 
 impl Motu {
@@ -79,26 +79,12 @@ impl Motu {
     }
 
     pub fn test_osc(&self) {
-        let mut keys: Vec<_> = self.channels.keys().collect();
-        keys.sort();
-        for key in keys {
-         println!("{}: {}", key, self.channels[key]);
-        }
-        // for (k, v) in &self.channels {
-        //     println!("{}: {}", k, v);
-        // }
-        // print all aux channels
-        for (k, v) in &self.aux_channels {
-            println!("{}: {}", k, v);
-        }
-        // print all monitor groups
-        for (k, v) in &self.monitor_groups {
-            println!("{}: {}", k, v);
-        }
+        // todo!()
+        
     }
 
     pub fn enable_monitoring(&self) -> Result<(), Box<dyn Error>> {
-        for (group_name, group_index) in &self.monitor_groups {
+        for (group_index, group_name) in &self.monitor_groups {
             println!("Enabling monitoring for {} {}", group_index, group_name);
             let command = MotuCommand::Unmute(Some(Channel::new(*group_index as i32)));
             self.send(command)?;
@@ -108,7 +94,7 @@ impl Motu {
     }
 
     pub fn disable_monitoring(&self) -> Result<(), Box<dyn Error>> {
-        for (group_name, group_index) in &self.monitor_groups {
+        for (group_index, group_name) in &self.monitor_groups {
             println!("Disabling monitoring for {} {}", group_index, group_name);
             let command = MotuCommand::Mute(Some(Channel::new(*group_index as i32)));
             self.send(command)?;
@@ -117,36 +103,48 @@ impl Motu {
         Ok(())
     }
 
-    pub fn print_settings(&self) {
-        // Code to print current settings goes here
+    pub fn print_settings(&self) -> Result<(), Box<dyn Error>>{
+        
+        let mut keys: Vec<_> = self.channels.keys().collect();
+        keys.sort();
+        println!("Channels:");
+        for key in keys {
+            println!("{}: {}", key, self.channels[key]);
+        }
+        let mut keys: Vec<_> = self.aux_channels.keys().collect();
+        keys.sort();
+        println!("Aux Channels:");
+        for key in keys {
+            println!("{}: {}", key, self.aux_channels[key]);
+        }
+        let mut keys: Vec<_> = self.monitor_groups.keys().collect();
+        keys.sort();
+        println!("Monitor Groups:");
+        for key in keys {
+            println!("{}: {}", key, self.monitor_groups[key]);
+        }
+
+        Ok(())
     }
     pub fn send(&self, command: MotuCommand) -> Result<(), Box<dyn Error>> {
         let message = match command {
             MotuCommand::EnableMonitoring => return self.enable_monitoring(),
             MotuCommand::DisableMonitoring => return self.disable_monitoring(),
-            MotuCommand::PrintSettings => OscMessage::new("/print_settings", 1.0),
+            MotuCommand::PrintSettings => return self.print_settings(),
             MotuCommand::Volume(channel, volume) => {
                 let channel_number = channel.map(|c| c.number.unwrap_or(0));
-                // format should be /mix/chan/<channel_number>/matrix/fader":1.0,
                 let address = format!("/mix/chan/{}/matrix/fader", channel_number.unwrap_or(0));
-                // // let address = format!(, channel_number.unwrap_or(0));
 
                 OscMessage::new(&address, volume)
             }
             MotuCommand::Send(channel, aux_channel, value) => {
                 let channel_number = channel.map(|c| c.number.unwrap_or(0));
                 let aux_channel_number = aux_channel.map(|c| c.number.unwrap_or(0));
-                // the format should be /mix/chan/<chnanel_number>/matrix/aux/<aux_channel_number>/send
                 let address = format!(
                     "/mix/chan/{}/matrix/aux/{}/send",
                     channel_number.unwrap_or(0),
                     aux_channel_number.unwrap_or(0)
                 );
-                // let address = format!(
-                //     "{}/Aux/{}/Fader",
-                //     channel_number.unwrap_or(0),
-                //     aux_channel_number.unwrap_or(0)
-                // );
 
                 OscMessage::new(&address, value)
             }
