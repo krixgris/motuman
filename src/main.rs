@@ -1,8 +1,4 @@
-// use std::fs::File;
-// use std::io::Write;
 use std::process;
-// use std::time::{SystemTime, UNIX_EPOCH};
-
 use clap::Parser;
 
 use motuman::config;
@@ -31,8 +27,6 @@ struct Args {
     send_amount: Option<f32>,
     #[arg(short, long)]
     init: bool,
-
-
 }
 
 fn main() {
@@ -49,51 +43,31 @@ fn main() {
     match monitor {
         Some(true) => motu_commands.push(motu::MotuCommand::EnableMonitoring),
         Some(false) => motu_commands.push(motu::MotuCommand::DisableMonitoring),
-        None => println!("No monitor mode"),
+        None => {}
     }
     let channel = args.channel;
     let send_to_channel = args.aux_channel;
     let send_amount = args.send_amount;
     let volume = args.volume;
-    match send_to_channel {
-        Some(send_to_channel) => match channel {
-            Some(channel) => motu_commands.push(motu::MotuCommand::Send(
-                Some(motu::Channel::new(channel)),
-                Some(motu::Channel::new(send_to_channel)),
-                send_amount.unwrap_or(0.0),
-            )),
-            None => println!("No channel"),
-        },
-        None => println!("No send to channel"),
+    if let (Some(channel), Some(send_to_channel)) = (channel, send_to_channel) {
+        motu_commands.push(motu::MotuCommand::Send(
+            Some(motu::Channel::new(channel)),
+            Some(motu::Channel::new(send_to_channel)),
+            send_amount.unwrap_or(0.0),
+        ))
     }
 
-    match volume {
-        Some(volume) => motu_commands.push(motu::MotuCommand::Volume(
-            Some(motu::Channel::new(args.channel.unwrap_or(0))),
+    if let (Some(channel), Some(volume)) = (channel, volume) {
+        motu_commands.push(motu::MotuCommand::Volume(
+            Some(motu::Channel::new(channel)),
             volume,
-        )),
-        None => println!("No volume"),
+        ))
     }
 
     let list_channels = args.list_channels;
     if list_channels {
         motu_commands.push(motu::MotuCommand::PrintSettings);
     }
-
-    // motu_commands.push(motu::MotuCommand::Volume(
-    //     Some(motu::Channel::new(0)),
-    //     1.0,
-    // ));
-    // motu_commands.push(motu::MotuCommand::Send(
-    //     Some(motu::Channel::new(0)),
-    //     Some(motu::Channel::new(0)),
-    //     0.0,
-    // ));
-    // motu_commands.push(motu::MotuCommand::Send(
-    //     Some(motu::Channel::new(0)),
-    //     Some(motu::Channel::new(2)),
-    //     0.0,
-    // ));
 
     let ip_address = {
         match args.ip_address {
@@ -118,22 +92,4 @@ fn main() {
         eprintln!("Application error: {e}");
         process::exit(1);
     }
-
-    // // Get the current time as a UNIX timestamp
-    // let timestamp = SystemTime::now()
-    //     .duration_since(UNIX_EPOCH)
-    //     .unwrap()
-    //     .as_secs();
-
-    // // Create or open a file in the same directory as the executable
-    // let mut file = File::create("output.txt").unwrap_or_else(|err| {
-    //     eprintln!("Problem creating file: {err}");
-    //     process::exit(1);
-    // });
-
-    // // Write the timestamp to the file
-    // writeln!(file, "{}", timestamp).unwrap_or_else(|err| {
-    //     eprintln!("Problem writing to file: {err}");
-    //     process::exit(1);
-    // });
 }
