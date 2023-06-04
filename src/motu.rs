@@ -48,6 +48,7 @@ pub enum MotuCommand {
     Send(Option<Channel>, Option<Channel>, f32),
     Mute(Option<Channel>),
     Unmute(Option<Channel>),
+    Init
 }
 
 pub struct Motu {
@@ -158,6 +159,7 @@ impl Motu {
                 let address = format!("/mix/group/{}/matrix/mute", channel_number.unwrap_or(0));
                 OscMessage::new(&address, 0.0)
             }
+            MotuCommand::Init => todo!(),
         };
 
         let packet = OscPacket::Message(message);
