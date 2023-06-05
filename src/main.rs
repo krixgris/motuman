@@ -58,8 +58,8 @@ fn main() {
     match send_to_channel {
         Some(send_to_channel) => match channel {
             Some(channel) => motu_commands.push(motu::MotuCommand::Send(
-                Some(motu::Channel::new(channel)),
-                Some(motu::Channel::new(send_to_channel)),
+                Some(motu::Channel::new(channel, motu::ChannelType::Chan)),
+                Some(motu::Channel::new(send_to_channel, motu::ChannelType::Aux)),
                 send_amount.unwrap_or(0.0),
             )),
             None => println!("No channel"),
@@ -69,7 +69,7 @@ fn main() {
 
     match volume {
         Some(volume) => motu_commands.push(motu::MotuCommand::Volume(
-            Some(motu::Channel::new(args.channel.unwrap_or(0))),
+            Some(motu::Channel::new(args.channel.unwrap_or(0), motu::ChannelType::Chan)),
             volume,
         )),
         None => println!("No volume"),
