@@ -4,7 +4,6 @@ pub mod config;
 #[cfg(test)]
 mod tests {
     use crate::{motu::{Channel, MotuCommand, Motu}, config::Config};
-    use super::*;
     use std::{error::Error, collections::HashMap};
     
     fn get_mock_config() -> Config {
