@@ -20,7 +20,6 @@ impl OscClient {
         let server_address = server_address.to_string();
         Ok(Self { socket, server_address })
     }
-
     
     pub fn send(&self, packet: OscPacket) -> Result<(), String> {
         let bytes = rosc::encoder::encode(&packet).map_err(|e| format!("{}", e))?;

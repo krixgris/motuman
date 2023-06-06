@@ -51,15 +51,15 @@ fn main() {
 
     if let (Some(channel), Some(send_to_channel)) = (channel, send_to_channel) {
         motu_commands.push(motu::MotuCommand::Send(
-            Some(motu::Channel::new(channel, motu::ChannelType::Chan)),
-            Some(motu::Channel::new(send_to_channel, motu::ChannelType::Aux)),
+            motu::Channel::new(channel, motu::ChannelType::Chan),
+            motu::Channel::new(send_to_channel, motu::ChannelType::Aux),
             send_amount.unwrap_or(0.0),
         ))
     }
 
     if let (Some(channel), Some(volume)) = (channel, volume) {
         motu_commands.push(motu::MotuCommand::Volume(
-            Some(motu::Channel::new(channel, motu::ChannelType::Chan)),
+            motu::Channel::new(channel, motu::ChannelType::Chan),
             volume,
         ))
     }
