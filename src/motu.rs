@@ -31,7 +31,7 @@ impl Display for ChannelType {
 }
 
 pub struct Channel {
-    number: Option<i32>,
+    number: i32,
     channel_type: ChannelType,
     // description: String,
     // stereo: Option<bool>,
@@ -39,7 +39,7 @@ pub struct Channel {
 impl Channel {
     pub fn new(arg: i32, channel_type: ChannelType) -> Channel {
         Channel {
-            number: Some(arg),
+            number: arg,
             channel_type,
             // description: String::from(""),
             // stereo: None,
@@ -150,20 +150,14 @@ impl Motu {
             MotuCommand::PrintSettings => return self.print_settings(),
             MotuCommand::Volume(channel, volume) => {
                 let channel_number = channel.map(|c| c.number.unwrap_or(0));
-                let address = format!("/mix/chan/{}/matrix/fader", channel_number.unwrap_or(0));
-
+                let channel_type = channel.map(|c| c.channel_type).unwrap_or(ChannelType::Chan);
+                let address = format!("/mix/{}/1/{}/matrix/fader", channel_type, channel_number);
+            
                 OscMessage::new(&address, volume)
             }
-            // MotuCommand::Volume(channel, volume) => {
-            //     let channel_number = channel.map(|c| c.number.unwrap_or(0));
-            //     let channel_type = channel.map(|c| c.channel_type).unwrap_or(ChannelType::Chan);
-            //     let address = format!("/mix/{}/1/{}/matrix/fader", channel_type, channel_number.unwrap_or(0));
-            
-            //     OscMessage::new(&address, volume)
-            // }
             MotuCommand::Send(channel, aux_channel, value) => {
-                let channel_number = channel.map(|c| c.number.unwrap_or(0));
-                let aux_channel_number = aux_channel.map(|c| c.number.unwrap_or(0));
+                let channel_number = channel.map(|c| c.number);
+                let aux_channel_number = aux_channel.map(|c| c.number);
                 let address = format!(
                     "/mix/chan/{}/matrix/aux/{}/send",
                     channel_number.unwrap_or(0),
@@ -173,12 +167,12 @@ impl Motu {
                 OscMessage::new(&address, value)
             }
             MotuCommand::Mute(channel) => {
-                let channel_number = channel.map(|c| c.number.unwrap_or(0));
+                let channel_number = channel.map(|c| c.number);
                 let address = format!("/mix/group/{}/matrix/mute", channel_number.unwrap_or(0));
                 OscMessage::new(&address, 1.0)
             }
             MotuCommand::Unmute(channel) => {
-                let channel_number = channel.map(|c| c.number.unwrap_or(0));
+                let channel_number = channel.map(|c| c.number);
                 let address = format!("/mix/group/{}/matrix/mute", channel_number.unwrap_or(0));
                 OscMessage::new(&address, 0.0)
             }

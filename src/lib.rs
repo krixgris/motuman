@@ -3,7 +3,7 @@ pub mod config;
 
 #[cfg(test)]
 mod tests {
-    use crate::{motu::{Channel, MotuCommand, Motu}, config::Config};
+    use crate::{motu::{Channel, MotuCommand, Motu, ChannelType}, config::Config};
     use std::{error::Error, collections::HashMap};
     
     fn get_mock_config() -> Config {
@@ -51,7 +51,7 @@ mod tests {
     fn test_volume() -> Result<(), Box<dyn Error>> {
         let mock_config = get_mock_config();
         let motu = Motu::new("127.0.0.1:8000", &mock_config)?;
-        motu.send(MotuCommand::Volume(Some(Channel::new(1, motu::ChannelType::Chan)), 1.0))?;
+        motu.send(MotuCommand::Volume(Some(Channel::new(1, ChannelType::Chan)), 1.0))?;
         // Add assertions here to check that volume is set correctly
         Ok(())
     }
@@ -60,7 +60,7 @@ mod tests {
     fn test_send() -> Result<(), Box<dyn Error>> {
         let mock_config = get_mock_config();
         let motu = Motu::new("127.0.0.1:8000", &mock_config)?;
-        motu.send(MotuCommand::Send(Some(Channel::new(1, motu::ChannelType::Chan)), Some(Channel::new(2, motu::ChannelType::Aux)), 0.5))?;
+        motu.send(MotuCommand::Send(Some(Channel::new(1, ChannelType::Chan)), Some(Channel::new(2, ChannelType::Aux)), 0.5))?;
         // Add assertions here to check that send is set correctly
         Ok(())
     }
