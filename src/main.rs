@@ -1,5 +1,5 @@
-use std::process;
 use clap::Parser;
+use std::process;
 
 use motuman::config;
 use motuman::motu;
@@ -39,16 +39,16 @@ fn main() {
         motu_commands.push(motu::MotuCommand::Init);
     }
 
-    let monitor = args.monitor;
-    match monitor {
-        Some(true) => motu_commands.push(motu::MotuCommand::EnableMonitoring),
-        Some(false) => motu_commands.push(motu::MotuCommand::DisableMonitoring),
-        None => {}
+    if let Some(true) = args.monitor {
+        motu_commands.push(motu::MotuCommand::EnableMonitoring);
+    } else if let Some(false) = args.monitor {
+        motu_commands.push(motu::MotuCommand::DisableMonitoring);
     }
     let channel = args.channel;
     let send_to_channel = args.aux_channel;
     let send_amount = args.send_amount;
     let volume = args.volume;
+
     if let (Some(channel), Some(send_to_channel)) = (channel, send_to_channel) {
         motu_commands.push(motu::MotuCommand::Send(
             Some(motu::Channel::new(channel, motu::ChannelType::Chan)),
@@ -92,7 +92,7 @@ fn main() {
                 eprintln!("Application error: {e}");
                 process::exit(1);
             }
-        },
+        }
         Err(e) => {
             eprintln!("Error creating Motu object: {e}");
             process::exit(1);
