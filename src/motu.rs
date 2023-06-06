@@ -149,19 +149,26 @@ impl Motu {
             MotuCommand::DisableMonitoring => return self.disable_monitoring(),
             MotuCommand::PrintSettings => return self.print_settings(),
             MotuCommand::Volume(channel, volume) => {
-                let channel_number = channel.map(|c| c.number.unwrap_or(0));
-                let channel_type = channel.map(|c| c.channel_type).unwrap_or(ChannelType::Chan);
+                let (channel_number, channel_type) = match channel {
+                    Some(channel) => (channel.number, channel.channel_type),
+                    None => (0, ChannelType::Chan),
+                };
                 let address = format!("/mix/{}/1/{}/matrix/fader", channel_type, channel_number);
             
                 OscMessage::new(&address, volume)
             }
             MotuCommand::Send(channel, aux_channel, value) => {
-                let channel_number = channel.map(|c| c.number);
-                let aux_channel_number = aux_channel.map(|c| c.number);
+                let (channel_number, aux_channel_number, channel_type) = match (channel, aux_channel) {
+                    (Some(channel), Some(aux_channel)) => (channel.number, aux_channel.number, channel.channel_type),
+                    (Some(channel), None) => (channel.number, 0, channel.channel_type),
+                    (None, Some(aux_channel)) => (0, aux_channel.number, ChannelType::Chan),
+                    (None, None) => (0, 0, ChannelType::Chan),
+                };
                 let address = format!(
-                    "/mix/chan/{}/matrix/aux/{}/send",
-                    channel_number.unwrap_or(0),
-                    aux_channel_number.unwrap_or(0)
+                    "/mix/{}/{}/matrix/aux/{}/send",
+                    channel_type,
+                    channel_number,
+                    aux_channel_number
                 );
 
                 OscMessage::new(&address, value)
