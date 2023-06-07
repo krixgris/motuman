@@ -162,7 +162,7 @@ impl Motu {
                 if !self.channels.contains_key(&channel_number) {
                     return Err(format!("Channel {} is not defined", channel_number).into());
                 }
-                if !self.channels.contains_key(&aux_channel_number) {
+                if !self.aux_channels.contains_key(&aux_channel_number) {
                     return Err(format!("Aux channel {} is not defined", aux_channel_number).into());
                 }
                 let address = format!(
