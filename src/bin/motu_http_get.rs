@@ -46,7 +46,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             for key in json_value.as_object().unwrap().keys() {
                 println!("{}: {}", key, json_value[key]);
             }
-            
+
             println!("Response body: {}", body);
         } else {
             println!("Request failed with status: {}", response.status());
