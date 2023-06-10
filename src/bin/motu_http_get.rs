@@ -39,8 +39,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Process the response as desired
         if response.status().is_success() {
-            let etag = response.headers().get("ETag").unwrap().clone();
-            let body = response.text()?;
+            // let etag = response.headers().get("ETag").unwrap().clone();
+            // let body = response.text()?;
+            let (etag, body) = (
+                response.headers().get("ETag").expect("No ETag in response").clone(),
+                response.text()?,
+            );
+
             println!("New ETag: {}", etag.to_str()?);
             let json_value: Value = serde_json::from_str(&body)?;
             for key in json_value.as_object().unwrap().keys() {
