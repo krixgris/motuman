@@ -3,14 +3,14 @@ use reqwest::{
     blocking::Response,
     header::{HeaderMap, HeaderValue},
 };
-use serde::{Deserialize, Serialize};
+// use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-#[derive(Debug, Deserialize)]
-struct ResponseData {
-    fader: f64,
-    // Add other fields as needed
-}
+// #[derive(Debug, Deserialize)]
+// struct ResponseData {
+//     fader: f64,
+//     // Add other fields as needed
+// }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new();
