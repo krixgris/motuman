@@ -58,10 +58,10 @@ fn main() {
     }
 
     if let (Some(channel), Some(volume)) = (channel, volume) {
-        motu_commands.push(motu::MotuCommand::Volume(
-            motu::Channel::new(channel, motu::ChannelType::Chan),
+        motu_commands.push(motu::MotuCommand::Volume {
+            channel: motu::Channel::new(channel, motu::ChannelType::Chan),
             volume,
-        ))
+        })
     }
 
     let list_channels = args.list_channels;

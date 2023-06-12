@@ -55,7 +55,10 @@ mod tests {
     fn test_volume() -> Result<(), Box<dyn Error>> {
         let mock_config = get_mock_config();
         let motu = Motu::new("127.0.0.1:8000", &mock_config)?;
-        motu.send(MotuCommand::Volume(Channel::new(1, ChannelType::Chan), 1.0))?;
+        motu.send(MotuCommand::Volume {
+            channel: Channel::new(1, ChannelType::Chan),
+            volume: 1.0,
+        })?;
         // Add assertions here to check that volume is set correctly
         Ok(())
     }
