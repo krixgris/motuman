@@ -5,7 +5,7 @@ pub mod motu;
 mod tests {
     use crate::{
         config::Config,
-        motu::{Channel, ChannelType, Motu, MotuCommand},
+        motu::{channel::Channel, channel::ChannelType, Motu, MotuCommand},
     };
     use std::{collections::HashMap, error::Error};
 

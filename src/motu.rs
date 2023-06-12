@@ -1,51 +1,55 @@
 use crate::config::Config;
+use crate::motu::channel::ChannelType;
+use crate::motu::channel::Channel;
 use rosc::OscMessage;
 use rosc::OscPacket;
 use rosc::OscType;
 use std::collections::HashMap;
 use std::error::Error;
-use std::fmt::Display;
+// use std::fmt::Display;
+
 
 mod osc;
+pub mod channel;
 
 /// constant also needs the ip without port to be used in the http server
 // const HTTP_PREFIX: &str = "/datastore";
 
-pub enum ChannelType {
-    Aux,
-    Chan,
-    Group,
-}
+// pub enum ChannelType {
+//     Aux,
+//     Chan,
+//     Group,
+// }
 
-impl Display for ChannelType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let channel_type = match self {
-            ChannelType::Aux => "aux",
-            ChannelType::Chan => "chan",
-            ChannelType::Group => "group",
-        };
-        write!(f, "{}", channel_type)
-    }
-}
+// impl Display for ChannelType {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         let channel_type = match self {
+//             ChannelType::Aux => "aux",
+//             ChannelType::Chan => "chan",
+//             ChannelType::Group => "group",
+//         };
+//         write!(f, "{}", channel_type)
+//     }
+// }
 
-pub struct Channel {
-    number: i32,
-    channel_type: ChannelType,
-}
-impl Channel {
-    pub fn new(arg: i32, channel_type: ChannelType) -> Channel {
-        Channel {
-            number: arg,
-            channel_type,
-        }
-    }
-    pub fn channel_number(&self) -> i32 {
-        self.number
-    }
-    pub fn channel_type(&self) -> &ChannelType {
-        &self.channel_type
-    }
-}
+// pub struct Channel {
+//     number: i32,
+//     channel_type: ChannelType,
+// }
+// impl Channel {
+//     pub fn new(arg: i32, channel_type: ChannelType) -> Channel {
+//         Channel {
+//             number: arg,
+//             channel_type,
+//         }
+//     }
+//     pub fn channel_number(&self) -> i32 {
+//         self.number
+//     }
+//     pub fn channel_type(&self) -> &ChannelType {
+//         &self.channel_type()
+//     }
+// }
 
 pub trait OscSender {
     fn new(address: &str, value: f32) -> Self;
@@ -151,7 +155,7 @@ impl Motu {
             MotuCommand::PrintSettings => return self.print_settings(),
             MotuCommand::Volume { channel, volume } => {
                 let (channel_number, channel_type) =
-                    (channel.number as usize, channel.channel_type);
+                    (channel.channel_number() as usize, channel.channel_type());
                 if !self.channels.contains_key(&channel_number) {
                     return Err(format!("Channel {} is not defined", channel_number).into());
                 }
@@ -161,9 +165,9 @@ impl Motu {
             }
             MotuCommand::Send(channel, aux_channel, value) => {
                 let (channel_number, aux_channel_number, channel_type) = (
-                    channel.number as usize,
-                    aux_channel.number as usize,
-                    channel.channel_type,
+                    channel.channel_number() as usize,
+                    aux_channel.channel_number() as usize,
+                    channel.channel_type(),
                 );
                 if !self.channels.contains_key(&channel_number) {
                     return Err(format!("Channel {} is not defined", channel_number).into());
@@ -179,12 +183,12 @@ impl Motu {
                 OscMessage::new(&address, value)
             }
             MotuCommand::Mute(channel) => {
-                let channel_number = channel.number;
+                let channel_number = channel.channel_number();
                 let address = format!("/mix/group/{}/matrix/mute", channel_number);
                 OscMessage::new(&address, 1.0)
             }
             MotuCommand::Unmute(channel) => {
-                let channel_number = channel.number;
+                let channel_number = channel.channel_number();
                 let address = format!("/mix/group/{}/matrix/mute", channel_number);
                 OscMessage::new(&address, 0.0)
             }
