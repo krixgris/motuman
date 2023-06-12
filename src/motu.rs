@@ -39,6 +39,12 @@ impl Channel {
             channel_type,
         }
     }
+    pub fn channel_number(&self) -> i32 {
+        self.number
+    }
+    pub fn channel_type(&self) -> &ChannelType {
+        &self.channel_type
+    }
 }
 
 pub trait OscSender {
@@ -58,7 +64,7 @@ pub enum MotuCommand {
     EnableMonitoring,
     DisableMonitoring,
     PrintSettings,
-    Volume(Channel, f32),
+    Volume { channel: Channel, volume: f32 },
     Send(Channel, Channel, f32),
     Mute(Channel),
     Unmute(Channel),
@@ -143,7 +149,7 @@ impl Motu {
             MotuCommand::EnableMonitoring => return self.enable_monitoring(),
             MotuCommand::DisableMonitoring => return self.disable_monitoring(),
             MotuCommand::PrintSettings => return self.print_settings(),
-            MotuCommand::Volume(channel, volume) => {
+            MotuCommand::Volume { channel, volume } => {
                 let (channel_number, channel_type) =
                     (channel.number as usize, channel.channel_type);
                 if !self.channels.contains_key(&channel_number) {
@@ -200,8 +206,10 @@ impl Motu {
                 "Setting volume for channel {} {}",
                 channel_index, channel_name
             );
-            let command =
-                MotuCommand::Volume(Channel::new(*channel_index as i32, ChannelType::Chan), 1.0);
+            let command = MotuCommand::Volume {
+                channel: Channel::new(*channel_index as i32, ChannelType::Chan),
+                volume: 1.0,
+            };
             std::thread::sleep(std::time::Duration::from_millis(delay));
             commands.push(command);
             for (aux_channel_index, aux_channel_name) in &self.aux_channels {
