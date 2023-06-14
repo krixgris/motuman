@@ -1,55 +1,14 @@
 use crate::config::Config;
-use crate::motu::channel::ChannelType;
 use crate::motu::channel::Channel;
+use crate::motu::channel::ChannelType;
 use rosc::OscMessage;
 use rosc::OscPacket;
 use rosc::OscType;
 use std::collections::HashMap;
 use std::error::Error;
-// use std::fmt::Display;
 
-
-mod osc;
 pub mod channel;
-
-/// constant also needs the ip without port to be used in the http server
-// const HTTP_PREFIX: &str = "/datastore";
-
-// pub enum ChannelType {
-//     Aux,
-//     Chan,
-//     Group,
-// }
-
-// impl Display for ChannelType {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         let channel_type = match self {
-//             ChannelType::Aux => "aux",
-//             ChannelType::Chan => "chan",
-//             ChannelType::Group => "group",
-//         };
-//         write!(f, "{}", channel_type)
-//     }
-// }
-
-// pub struct Channel {
-//     number: i32,
-//     channel_type: ChannelType,
-// }
-// impl Channel {
-//     pub fn new(arg: i32, channel_type: ChannelType) -> Channel {
-//         Channel {
-//             number: arg,
-//             channel_type,
-//         }
-//     }
-//     pub fn channel_number(&self) -> i32 {
-//         self.number
-//     }
-//     pub fn channel_type(&self) -> &ChannelType {
-//         &self.channel_type()
-//     }
-// }
+mod osc;
 
 pub trait OscSender {
     fn new(address: &str, value: f32) -> Self;
@@ -68,8 +27,15 @@ pub enum MotuCommand {
     EnableMonitoring,
     DisableMonitoring,
     PrintSettings,
-    Volume { channel: Channel, volume: f32 },
-    Send(Channel, Channel, f32),
+    Volume {
+        channel: Channel,
+        volume: f32,
+    },
+    Send {
+        channel: Channel,
+        aux_channel: Channel,
+        value: f32,
+    },
     Mute(Channel),
     Unmute(Channel),
     Init,
@@ -163,7 +129,11 @@ impl Motu {
 
                 OscMessage::new(&address, volume)
             }
-            MotuCommand::Send(channel, aux_channel, value) => {
+            MotuCommand::Send {
+                channel,
+                aux_channel,
+                value,
+            } => {
                 let (channel_number, aux_channel_number, channel_type) = (
                     channel.channel_number() as usize,
                     aux_channel.channel_number() as usize,
@@ -221,11 +191,11 @@ impl Motu {
                     "Setting send for channel {} {} to aux channel {} {}",
                     channel_index, channel_name, aux_channel_index, aux_channel_name
                 );
-                let command = MotuCommand::Send(
-                    Channel::new(*channel_index as i32, ChannelType::Chan),
-                    Channel::new(*aux_channel_index as i32, ChannelType::Aux),
-                    0.0,
-                );
+                let command = MotuCommand::Send {
+                    channel: Channel::new(*channel_index as i32, ChannelType::Chan),
+                    aux_channel: Channel::new(*aux_channel_index as i32, ChannelType::Aux),
+                    value: 0.0,
+                };
                 std::thread::sleep(std::time::Duration::from_millis(delay));
                 commands.push(command);
             }
@@ -238,7 +208,6 @@ impl Motu {
             std::thread::sleep(std::time::Duration::from_millis(delay));
             commands.push(command);
         }
-
         self.run(commands)?;
 
         Ok(())

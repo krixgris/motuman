@@ -50,11 +50,14 @@ fn main() {
     let volume = args.volume;
 
     if let (Some(channel), Some(send_to_channel)) = (channel, send_to_channel) {
-        motu_commands.push(motu::MotuCommand::Send(
-            motu::channel::Channel::new(channel, motu::channel::ChannelType::Chan),
-            motu::channel::Channel::new(send_to_channel, motu::channel::ChannelType::Aux),
-            send_amount.unwrap_or(0.0),
-        ))
+        motu_commands.push(motu::MotuCommand::Send {
+            channel: motu::channel::Channel::new(channel, motu::channel::ChannelType::Chan),
+            aux_channel: motu::channel::Channel::new(
+                send_to_channel,
+                motu::channel::ChannelType::Aux,
+            ),
+            value: send_amount.unwrap_or(0.0),
+        })
     }
 
     if let (Some(channel), Some(volume)) = (channel, volume) {

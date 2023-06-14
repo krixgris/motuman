@@ -67,11 +67,11 @@ mod tests {
     fn test_send() -> Result<(), Box<dyn Error>> {
         let mock_config = get_mock_config();
         let motu = Motu::new("127.0.0.1:8000", &mock_config)?;
-        motu.send(MotuCommand::Send(
-            Channel::new(1, ChannelType::Chan),
-            Channel::new(1, ChannelType::Aux),
-            0.5,
-        ))?;
+        motu.send(MotuCommand::Send {
+            channel: Channel::new(1, ChannelType::Chan),
+            aux_channel: Channel::new(1, ChannelType::Aux),
+            value: 0.5,
+        })?;
         // Add assertions here to check that send is set correctly
         Ok(())
     }
