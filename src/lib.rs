@@ -1,5 +1,6 @@
 pub mod config;
 pub mod motu;
+pub mod args;
 
 #[cfg(test)]
 mod tests {
