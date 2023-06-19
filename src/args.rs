@@ -1,5 +1,5 @@
-use clap::Parser;
 use crate::motu;
+use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -32,11 +32,35 @@ impl Args {
     }
 
     pub fn ip_address(&self) -> Option<String> {
-        self.ip_address.as_ref().map(|ip| if ip.contains(':') {
+        self.ip_address.as_ref().map(|ip| {
+            if ip.contains(':') {
                 ip.clone()
             } else {
                 format!("{}:{}", ip, self.port.unwrap_or(8000))
-            })
+            }
+        })
+    }
+
+    pub fn ip_address_only(&self) -> Option<String> {
+        // validate that the IP address is valid
+        if let Some(ip) = &self.ip_address {
+            if ip.contains(':') {
+                let ip_part = Some(ip.split(':').collect::<Vec<&str>>()[0].to_string());
+                // let valid_ip = ip_part.unwrap().split('.').all(|octet| {
+                //     octet
+                //         .parse::<u8>()
+                //         .map(|num| num <= 255)
+                //         .unwrap_or_else(|_| false)
+                // });
+                // validate that the IP address is valid
+                if let Some(ip) = ip_part {
+                    if ip.contains('.') {
+                        return Some(ip);
+                    }
+                }
+            }
+        }
+        None
     }
 
     pub fn config_file_name(&self) -> String {
