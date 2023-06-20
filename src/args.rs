@@ -43,24 +43,29 @@ impl Args {
 
     pub fn ip_address_only(&self) -> Option<String> {
         // validate that the IP address is valid
-        if let Some(ip) = &self.ip_address {
-            if ip.contains(':') {
-                let ip_part = Some(ip.split(':').collect::<Vec<&str>>()[0].to_string());
-                // let valid_ip = ip_part.unwrap().split('.').all(|octet| {
-                //     octet
-                //         .parse::<u8>()
-                //         .map(|num| num <= 255)
-                //         .unwrap_or_else(|_| false)
-                // });
-                // validate that the IP address is valid
-                if let Some(ip) = ip_part {
-                    if ip.contains('.') {
-                        return Some(ip);
-                    }
-                }
-            }
-        }
-        None
+        todo!("validate that the IP address is valid");
+        
+
+        // if let Some(ip) = &self.ip_address {
+        //     if ip.contains('.') {
+        //         return Some(ip.clone());
+        //     }
+
+        // if ip.contains(':') {
+        //     let ip_part = Some(ip.split(':').collect::<Vec<&str>>()[0].to_string());
+        //     // let valid_ip = ip_part.unwrap().split('.').all(|octet| {
+        //     //     octet
+        //     //         .parse::<u8>()
+        //     //         .map(|num| num <= 255)
+        //     //         .unwrap_or_else(|_| false)
+        //     // });
+        //     // validate that the IP address is valid
+        //     if let Some(ip) = ip_part {
+        //         if ip.contains('.') {
+        //             return Some(ip);
+        //         }
+        //     }
+        // }
     }
 
     pub fn config_file_name(&self) -> String {
