@@ -1,5 +1,7 @@
 use crate::motu;
 use clap::Parser;
+// use std::net::IpAddr;
+use std::net::Ipv4Addr;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -43,29 +45,19 @@ impl Args {
 
     pub fn ip_address_only(&self) -> Option<String> {
         // validate that the IP address is valid
-        todo!("validate that the IP address is valid");
-        
-
-        // if let Some(ip) = &self.ip_address {
-        //     if ip.contains('.') {
-        //         return Some(ip.clone());
-        //     }
-
-        // if ip.contains(':') {
-        //     let ip_part = Some(ip.split(':').collect::<Vec<&str>>()[0].to_string());
-        //     // let valid_ip = ip_part.unwrap().split('.').all(|octet| {
-        //     //     octet
-        //     //         .parse::<u8>()
-        //     //         .map(|num| num <= 255)
-        //     //         .unwrap_or_else(|_| false)
-        //     // });
-        //     // validate that the IP address is valid
-        //     if let Some(ip) = ip_part {
-        //         if ip.contains('.') {
-        //             return Some(ip);
-        //         }
-        //     }
-        // }
+        // todo!("validate that the IP address is valid");
+        // split my ip on : and into 4 u8 parts that i can use in the Ipv4Addr::new()
+        if let Some(ip) = &self.ip_address {
+            if ip.contains(':') {
+                let parts: Vec<&str> = ip.split(':').collect();
+                let octets: Vec<u8> = parts.iter().map(|part| part.parse().unwrap()).collect();
+                let ipv4_addr = Ipv4Addr::new(octets[0], octets[1], octets[2], octets[3]);
+                return Some(ipv4_addr.to_string());
+            } else {
+                return Some(ip.clone());
+            }
+        }
+        None
     }
 
     pub fn config_file_name(&self) -> String {
