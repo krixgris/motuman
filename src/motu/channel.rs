@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+#[derive(Debug)]
 pub enum ChannelType {
     Aux,
     Chan,
@@ -17,6 +18,7 @@ impl Display for ChannelType {
     }
 }
 
+#[derive(Debug)]
 pub struct Channel {
     channel_number: i32,
     channel_type: ChannelType,

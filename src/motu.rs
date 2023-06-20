@@ -23,6 +23,7 @@ impl OscSender for OscMessage {
     }
 }
 
+#[derive(Debug)]
 pub enum MotuCommand {
     EnableMonitoring,
     DisableMonitoring,
