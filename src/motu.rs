@@ -50,7 +50,7 @@ pub struct Motu {
 }
 
 impl Motu {
-    pub fn new(ip:&str, port:&str, config: &Config) -> Result<Motu, Box<dyn Error>> {
+    pub fn new(ip: &str, port: &str, config: &Config) -> Result<Motu, Box<dyn Error>> {
         let client = osc::OscClient::new(&format!("{}:{}", ip, port))?;
         Ok(Motu {
             client,
@@ -69,23 +69,34 @@ impl Motu {
     }
 
     pub fn enable_monitoring(&self) -> Result<(), Box<dyn Error>> {
-        for (group_index, group_name) in &self.monitor_groups {
-            println!("Enabling monitoring for {} {}", group_index, group_name);
-            let command =
-                MotuCommand::Unmute(Channel::new(*group_index as i32, ChannelType::Group));
-            self.send(command)?;
-        }
-        println!("Monitoring enabled");
+        let commands: Vec<MotuCommand> = self
+            .monitor_groups
+            .keys()
+            .map(|group_index| {
+                MotuCommand::Unmute(Channel::new(*group_index as i32, ChannelType::Group))
+            })
+            .collect();
+        println!("Enabling monitoring for {:?}", self.monitor_groups);
+        self.run(commands)?;
         Ok(())
     }
 
     pub fn disable_monitoring(&self) -> Result<(), Box<dyn Error>> {
-        for (group_index, group_name) in &self.monitor_groups {
-            println!("Disabling monitoring for {} {}", group_index, group_name);
-            let command = MotuCommand::Mute(Channel::new(*group_index as i32, ChannelType::Group));
-            self.send(command)?;
-        }
-        println!("Monitoring disabled");
+        // for (group_index, group_name) in &self.monitor_groups {
+        //     println!("Disabling monitoring for {} {}", group_index, group_name);
+        //     let command = MotuCommand::Mute(Channel::new(*group_index as i32, ChannelType::Group));
+        //     self.send(command)?;
+        // }
+        // println!("Monitoring disabled");
+        let commands: Vec<MotuCommand> = self
+            .monitor_groups
+            .keys()
+            .map(|group_index| {
+                MotuCommand::Mute(Channel::new(*group_index as i32, ChannelType::Group))
+            })
+            .collect();
+        println!("Disabling monitoring for {:?}", self.monitor_groups);
+        self.run(commands)?;
         Ok(())
     }
 
@@ -114,6 +125,7 @@ impl Motu {
     pub fn send(&self, command: MotuCommand) -> Result<(), Box<dyn Error>> {
         let message = match command {
             MotuCommand::EnableMonitoring => return self.enable_monitoring(),
+
             MotuCommand::DisableMonitoring => return self.disable_monitoring(),
             MotuCommand::PrintSettings => return self.print_settings(),
             MotuCommand::Volume { channel, volume } => {
