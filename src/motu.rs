@@ -52,7 +52,9 @@ pub struct Motu {
 
 impl Motu {
     pub fn new(ip_address: &IpEndpoint, config: &Config) -> Result<Motu, Box<dyn Error>> {
-        let client = osc::OscClient::new(ip_address.into())?;
+        let binding = ip_address.to_string();
+        let ip_address = binding.as_str();
+        let client = osc::OscClient::new(ip_address)?;
         Ok(Motu {
             client,
             aux_channels: config.aux_channels.clone(),

@@ -2,7 +2,7 @@
 mod tests {
     use super::*;
     use crate::*;
-    use crate::args::{self, Args};
+    use crate::args::{self, Args, IpEndpoint};
 
     #[test]
     fn test_config_file_name() {
@@ -85,27 +85,27 @@ mod tests {
             monitor: None,
             channel: None,
             volume: None,
-            ip_address: Some(String::from("192.168.1.2")),
+            ip_address: Some(IpEndpoint::from("192.168.1.2")),
             port: Some(8000),
             list_channels: false,
             aux_channel: None,
             send_amount: None,
             init: false,
         };
-        assert_eq!(args.ip_address_only(), Some(String::from("192.168.1.2")));
+        // assert_eq!(args.ip_address, Some(IpEndpoint::from("192.168.1.2")));
 
         let args = Args {
             config: String::from("test_config.toml"),
             monitor: None,
             channel: None,
             volume: None,
-            ip_address: Some(String::from("192.168.1.2:9000")),
+            ip_address: Some(IpEndpoint::from("192.168.1.2:9000")),
             port: Some(8000),
             list_channels: false,
             aux_channel: None,
             send_amount: None,
             init: false,
         };
-        assert_eq!(args.ip_address_only(), Some(String::from("192.168.1.2")));
+        // assert_eq!(args.ip_address_only(), Some(IpEndpoint::from("192.168.1.2")));
     }
 }

@@ -13,7 +13,7 @@ mod tests {
 
     fn get_mock_config() -> Config {
         let mut mock_config = Config {
-            ip_address: String::from("127.0.0.1:8000").parse::<IpEndpoint>().unwrap(),
+            ip_address: IpEndpoint::from("127.0.0.1:8000"),
             aux_channels: HashMap::new(),
             channels: HashMap::new(),
             monitor_groups: HashMap::new(),
@@ -29,7 +29,7 @@ mod tests {
     #[test]
     fn test_enable_monitoring() -> Result<(), Box<dyn Error>> {
         let mock_config = get_mock_config();
-        let motu = Motu::new("127.0.0.1:8000", &mock_config)?;
+        let motu = Motu::new(&IpEndpoint::from("127.0.0.1:8000"), &mock_config)?;
         motu.send(MotuCommand::EnableMonitoring)?;
         // Add assertions here to check that monitoring is enabled
         Ok(())
@@ -38,7 +38,7 @@ mod tests {
     #[test]
     fn test_disable_monitoring() -> Result<(), Box<dyn Error>> {
         let mock_config = get_mock_config();
-        let motu = Motu::new("127.0.0.1:8000", &mock_config)?;
+        let motu = Motu::new(&IpEndpoint::from("127.0.0.1:8000"), &mock_config)?;
         motu.send(MotuCommand::DisableMonitoring)?;
         // Add assertions here to check that monitoring is disabled
         Ok(())
@@ -47,7 +47,7 @@ mod tests {
     #[test]
     fn test_print_settings() -> Result<(), Box<dyn Error>> {
         let mock_config = get_mock_config();
-        let motu = Motu::new("127.0.0.1:8000", &mock_config)?;
+        let motu = Motu::new(&IpEndpoint::from("127.0.0.1:8000"), &mock_config)?;
         motu.send(MotuCommand::PrintSettings)?;
         // Add assertions here to check that settings are printed
         Ok(())
@@ -56,7 +56,7 @@ mod tests {
     #[test]
     fn test_volume() -> Result<(), Box<dyn Error>> {
         let mock_config = get_mock_config();
-        let motu = Motu::new("127.0.0.1:8000", &mock_config)?;
+        let motu = Motu::new(&IpEndpoint::from("127.0.0.1:8000"), &mock_config)?;
         motu.send(MotuCommand::Volume {
             channel: Channel::new(1, ChannelType::Chan),
             volume: 1.0,
@@ -68,7 +68,7 @@ mod tests {
     #[test]
     fn test_send() -> Result<(), Box<dyn Error>> {
         let mock_config = get_mock_config();
-        let motu = Motu::new("127.0.0.1:8000", &mock_config)?;
+        let motu = Motu::new(&IpEndpoint::from("127.0.0.1:8000"), &mock_config)?;
         motu.send(MotuCommand::Send {
             channel: Channel::new(1, ChannelType::Chan),
             aux_channel: Channel::new(1, ChannelType::Aux),
