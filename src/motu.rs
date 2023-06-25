@@ -1,6 +1,7 @@
 use crate::config::Config;
 use crate::motu::channel::Channel;
 use crate::motu::channel::ChannelType;
+use crate::args::IpEndpoint;
 use rosc::OscMessage;
 use rosc::OscPacket;
 use rosc::OscType;
@@ -50,8 +51,8 @@ pub struct Motu {
 }
 
 impl Motu {
-    pub fn new(ip_address: &str, config: &Config) -> Result<Motu, Box<dyn Error>> {
-        let client = osc::OscClient::new(ip_address)?;
+    pub fn new(ip_address: &IpEndpoint, config: &Config) -> Result<Motu, Box<dyn Error>> {
+        let client = osc::OscClient::new(ip_address.into())?;
         Ok(Motu {
             client,
             aux_channels: config.aux_channels.clone(),

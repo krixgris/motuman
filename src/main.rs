@@ -2,6 +2,20 @@ use std::process;
 use motuman::{config, motu, args::Args};
 use std::env;
 
+use std::net::IpAddr;
+
+#[derive(Debug)]
+pub struct IpEndpoint {
+    pub ip_address: IpAddr,
+    pub port: u16,
+}
+
+impl From<IpEndpoint> for Option<String> {
+    fn from(endpoint: IpEndpoint) -> Self {
+        Some(format!("{}:{}", endpoint.ip_address, endpoint.port))
+    }
+}
+
 fn main() {
     // Get the current working directory and print it to the console
     if let Ok(cwd) = env::current_dir() {
@@ -16,7 +30,7 @@ fn main() {
   
     // Get the configuration file name, IP address, and MOTU commands from the command line arguments
     let config_file_name = args.config_file_name();
-    let ip_address = args.ip_address();
+    let ip_address = dbg!(args.ip_address);
     let motu_commands = args.motu_commands();
     dbg!(&config_file_name);
     dbg!(&ip_address);
@@ -29,7 +43,7 @@ fn main() {
     dbg!(&config.ip_address);
 
     // Create a new MOTU object and run the specified commands
-    match motu::Motu::new(&config.ip_address, &config) {
+    match motu::Motu::new(config.ip_address.to_string().as_str(), &config) {
         Ok(motu) => {
             if let Err(e) = motu.run(motu_commands) {
                 eprintln!("Application error: {e}");

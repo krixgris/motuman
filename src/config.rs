@@ -3,16 +3,18 @@ use std::error::Error;
 use std::fs;
 use toml::Value;
 
+use crate::args::IpEndpoint;
+
 #[derive(Debug)]
 pub struct Config {
-    pub ip_address: String,
+    pub ip_address: IpEndpoint,
     pub aux_channels: HashMap<usize, String>,
     pub channels: HashMap<usize, String>,
     pub monitor_groups: HashMap<usize, String>,
 }
 
 impl Config {
-    pub fn build(file_name: String, arg_ip: Option<String>) -> Result<Config, Box<dyn Error>> {
+    pub fn build(file_name: String, arg_ip: Option<IpEndpoint>) -> Result<Config, Box<dyn Error>> {
         let config_file = fs::read_to_string(dbg!(file_name))?;
         let config: Value = toml::from_str(&config_file)?;
 
@@ -26,7 +28,8 @@ impl Config {
                 .get("ip_address")
                 .and_then(|v| v.as_str())
                 .ok_or("Missing ip_address field")?
-                .to_string(),
+                // .to_string()
+                .parse::<IpEndpoint>()?,
         };
 
         // let aux_channels = config
