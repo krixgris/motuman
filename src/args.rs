@@ -1,12 +1,12 @@
 use crate::motu;
 use clap::Parser;
 // use std::net::IpAddr;
-use std::net::Ipv4Addr;
+// use std::net::Ipv4Addr;
 use std::fmt;
-use std::str::FromStr;
+// use std::str::FromStr;
 
-#[derive(Debug, Clone, Copy)]
-struct IpAddress {
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct IpAddress {
     octets: [u8; 4],
 }
 impl std::str::FromStr for IpAddress {
@@ -57,10 +57,10 @@ impl fmt::Display for IpAddress {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct IpEndpoint {
-    address: IpAddress,
-    port: u16,
+    pub address: IpAddress,
+    pub port: u16,
 }
 
 impl fmt::Display for IpEndpoint {
@@ -112,7 +112,7 @@ impl std::convert::From<&str> for IpEndpoint {
 
         let address = match parts[0].parse::<IpAddress>() {
             Ok(value) => value,
-            Err(e) => return IpEndpoint { address: IpAddress { octets: [0; 4] }, port: 8000 },
+            Err(_) => return IpEndpoint { address: IpAddress { octets: [0; 4] }, port: 8000 },
         };
 
         let port = match parts.get(1) {
