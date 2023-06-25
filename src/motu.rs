@@ -41,6 +41,48 @@ pub enum MotuCommand {
     Unmute(Channel),
     Init,
 }
+impl MotuCommand{
+    fn hash_map(&self) -> HashMap<String, String> {
+        let mut map = HashMap::new();
+        match self {
+            MotuCommand::EnableMonitoring => {
+                map.insert("/meters/monitoring/enabled".to_string(), "1".to_string());
+            }
+            MotuCommand::DisableMonitoring => {
+                map.insert("/meters/monitoring/enabled".to_string(), "0".to_string());
+            }
+            MotuCommand::PrintSettings => {
+                map.insert("/print".to_string(), "settings".to_string());
+            }
+            MotuCommand::Volume { channel, volume } => {
+                map.insert(
+                    format!("/ch/{}/mix/level", channel.channel_number()),
+                    volume.to_string(),
+                );
+            }
+            MotuCommand::Send {
+                channel,
+                aux_channel,
+                value,
+            } => {
+                map.insert(
+                    format!("/ch/{}/mix/aux/{}/level", channel.channel_number(), aux_channel.channel_number()),
+                    value.to_string(),
+                );
+            }
+            MotuCommand::Mute(channel) => {
+                map.insert(format!("/ch/{}/mix/on", channel.channel_number()), "0".to_string());
+            }
+            MotuCommand::Unmute(channel) => {
+                map.insert(format!("/ch/{}/mix/on", channel.channel_number()), "1".to_string());
+            }
+            MotuCommand::Init => {
+                map.insert("/ch/1/mix/level".to_string(), "0.0".to_string());
+            }
+        }
+        map
+    }
+}
 
 pub struct Motu {
     client: osc::OscClient,
@@ -63,6 +105,7 @@ impl Motu {
     pub fn run(&self, commands: Vec<MotuCommand>) -> Result<(), Box<dyn Error>> {
         for command in commands {
             // add a small pause of 40ms between commands?
+            println!("Sending command: {:?}", command.hash_map());
             self.send(command)?;
         }
         Ok(())
