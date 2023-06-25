@@ -11,7 +11,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let mut headers = header::HeaderMap::new();
-    headers.insert("Content-Type", "application/x-www-form-urlencoded".parse().unwrap());
+    headers.insert("Content-Type", "application/json".parse().unwrap());
 
 
     // Send the POST request with JSON payload

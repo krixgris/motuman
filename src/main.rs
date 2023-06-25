@@ -1,6 +1,6 @@
-use std::process;
-use motuman::{config, motu, args::Args};
+use motuman::{args::Args, config, motu};
 use std::env;
+use std::process;
 
 use std::net::IpAddr;
 
@@ -8,12 +8,6 @@ use std::net::IpAddr;
 pub struct IpEndpoint {
     pub ip_address: IpAddr,
     pub port: u16,
-}
-
-impl From<IpEndpoint> for Option<String> {
-    fn from(endpoint: IpEndpoint) -> Self {
-        Some(format!("{}:{}", endpoint.ip_address, endpoint.port))
-    }
 }
 
 fn main() {
@@ -27,23 +21,23 @@ fn main() {
     // Initialize the command line arguments
     let args = Args::init();
     println!("Args: {:?}", args);
-  
+
     // Get the configuration file name, IP address, and MOTU commands from the command line arguments
     let config_file_name = args.config_file_name();
     let ip_address = args.ip_address;
     let motu_commands = args.motu_commands();
-    // dbg!(&config_file_name);
-    // dbg!(&ip_address);
 
     // Build the configuration object
     let config = config::Config::build(config_file_name, ip_address).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {err}");
         process::exit(1);
     });
-    // dbg!(&config.ip_address);
+
+    let ip: &str = &config.ip_address.address.to_string();
+    let port = &config.ip_address.port.to_string();
 
     // Create a new MOTU object and run the specified commands
-    match motu::Motu::new(&config.ip_address, &config) {
+    match motu::Motu::new(ip, port, &config) {
         Ok(motu) => {
             if let Err(e) = motu.run(motu_commands) {
                 eprintln!("Application error: {e}");

@@ -1,7 +1,6 @@
 use crate::config::Config;
 use crate::motu::channel::Channel;
 use crate::motu::channel::ChannelType;
-use crate::args::IpEndpoint;
 use rosc::OscMessage;
 use rosc::OscPacket;
 use rosc::OscType;
@@ -24,7 +23,7 @@ impl OscSender for OscMessage {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum MotuCommand {
     EnableMonitoring,
     DisableMonitoring,
@@ -51,10 +50,8 @@ pub struct Motu {
 }
 
 impl Motu {
-    pub fn new(ip_address: &IpEndpoint, config: &Config) -> Result<Motu, Box<dyn Error>> {
-        let binding = ip_address.to_string();
-        let ip_address = binding.as_str();
-        let client = osc::OscClient::new(ip_address)?;
+    pub fn new(ip:&str, port:&str, config: &Config) -> Result<Motu, Box<dyn Error>> {
+        let client = osc::OscClient::new(&format!("{}:{}", ip, port))?;
         Ok(Motu {
             client,
             aux_channels: config.aux_channels.clone(),
@@ -69,10 +66,6 @@ impl Motu {
             self.send(command)?;
         }
         Ok(())
-    }
-
-    pub fn test_osc(&self) {
-        // todo!()
     }
 
     pub fn enable_monitoring(&self) -> Result<(), Box<dyn Error>> {

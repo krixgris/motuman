@@ -143,7 +143,7 @@ pub struct Args {
     pub monitor: Option<bool>,
     #[arg(short, long)]
     pub channel: Option<i32>,
-    #[arg(short, long)]
+    #[arg(long = "vol")]
     pub volume: Option<f32>,
     #[arg(long = "ip")]
     pub ip_address: Option<IpEndpoint>,
@@ -157,6 +157,8 @@ pub struct Args {
     pub send_amount: Option<f32>,
     #[arg(short, long)]
     pub init: bool,
+    #[arg(short, long)]
+    pub verbose: bool,
 }
 
 impl Args {
