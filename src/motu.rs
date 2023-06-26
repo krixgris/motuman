@@ -23,7 +23,7 @@ impl OscSender for OscMessage {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum MotuCommand {
     EnableMonitoring,
     DisableMonitoring,
@@ -107,7 +107,7 @@ impl Motu {
     }
 
     pub fn run(&self, commands: Vec<MotuCommand>) -> Result<(), Box<dyn Error>> {
-        let mut special_commands: Vec<Option<MotuCommand>> = commands
+        let mut special_commands: Vec<MotuCommand> = commands
             .iter()
             .filter(|command| 
             {
@@ -116,21 +116,22 @@ impl Motu {
             .map(|command| 
                 {
                     let mut new_commands: Vec<Option<MotuCommand>> = vec![];
-                    match command {
-                        MotuCommand::EnableMonitoring => {
-                            new_commands.push(Some(MotuCommand::Unmute(Channel::new(1, ChannelType::Group))));
-                        }
-                        MotuCommand::DisableMonitoring => {
-                            new_commands.push(Some(MotuCommand::Mute(Channel::new(1, ChannelType::Group))));
-                        }
-                        MotuCommand::PrintSettings => {
-                            self.print_settings();
-                        }
-                        MotuCommand::Init => {
-                            new_commands.push(Some(MotuCommand::Volume{channel:Channel::new(1, ChannelType::Group), volume:0.0}));
-                        }
-                        _ => new_commands.push(None)
-                    }
+                    command
+                    // match command {
+                    //     MotuCommand::EnableMonitoring => {
+                    //         new_commands.push(Some(MotuCommand::Unmute(Channel::new(1, ChannelType::Group))));
+                    //     }
+                    //     MotuCommand::DisableMonitoring => {
+                    //         new_commands.push(Some(MotuCommand::Mute(Channel::new(1, ChannelType::Group))));
+                    //     }
+                    //     MotuCommand::PrintSettings => {
+                    //         self.print_settings();
+                    //     }
+                    //     MotuCommand::Init => {
+                    //         new_commands.push(Some(MotuCommand::Volume{channel:Channel::new(1, ChannelType::Group), volume:0.0}));
+                    //     }
+                    //     _ => new_commands.push(None)
+                    // }
                 
                 }
             )
