@@ -42,17 +42,20 @@ pub enum MotuCommand {
     Init,
 }
 impl MotuCommand{
-    fn hash_map(&self) -> HashMap<String, String> {
+    fn hash_map(&self) -> Option<HashMap<String, String>> {
         let mut map = HashMap::new();
         match self {
             MotuCommand::EnableMonitoring => {
-                map.insert("/meters/monitoring/enabled".to_string(), "1".to_string());
+                // map.insert("/meters/monitoring/enabled".to_string(), "1".to_string());
+                return None
             }
             MotuCommand::DisableMonitoring => {
-                map.insert("/meters/monitoring/enabled".to_string(), "0".to_string());
+                // map.insert("/meters/monitoring/enabled".to_string(), "0".to_string());
+                return None
             }
             MotuCommand::PrintSettings => {
-                map.insert("/print".to_string(), "settings".to_string());
+                // map.insert("/print".to_string(), "settings".to_string());
+                return None
             }
             MotuCommand::Volume { channel, volume } => {
                 map.insert(
@@ -77,10 +80,11 @@ impl MotuCommand{
                 map.insert(format!("/ch/{}/mix/on", channel.channel_number()), "1".to_string());
             }
             MotuCommand::Init => {
-                map.insert("/ch/1/mix/level".to_string(), "0.0".to_string());
+                // map.insert("/ch/1/mix/level".to_string(), "0.0".to_string());
+                return None
             }
         }
-        map
+        Some(map)
     }
 }
 
@@ -103,13 +107,60 @@ impl Motu {
     }
 
     pub fn run(&self, commands: Vec<MotuCommand>) -> Result<(), Box<dyn Error>> {
-        for command in commands {
-            // add a small pause of 40ms between commands?
-            println!("Sending command: {:?}", command.hash_map());
-            self.send(command)?;
-        }
+        let mut special_commands: Vec<Option<MotuCommand>> = commands
+            .iter()
+            .filter(|command| 
+            {
+               command.hash_map().is_some()
+            })
+            .map(|command| 
+                {
+                    let mut new_commands: Vec<Option<MotuCommand>> = vec![];
+                    match command {
+                        MotuCommand::EnableMonitoring => {
+                            new_commands.push(Some(MotuCommand::Unmute(Channel::new(1, ChannelType::Group))));
+                        }
+                        MotuCommand::DisableMonitoring => {
+                            new_commands.push(Some(MotuCommand::Mute(Channel::new(1, ChannelType::Group))));
+                        }
+                        MotuCommand::PrintSettings => {
+                            self.print_settings();
+                        }
+                        MotuCommand::Init => {
+                            new_commands.push(Some(MotuCommand::Volume{channel:Channel::new(1, ChannelType::Group), volume:0.0}));
+                        }
+                        _ => new_commands.push(None)
+                    }
+                
+                }
+            )
+            .collect();
+        
+        // for command in commands {
+        //     // add a small pause of 40ms between commands?
+        //     println!("Sending command: {:?}", command.hash_map());
+        //     self.send(command)?;
+        // }
         Ok(())
     }
+
+
+pub fn process_commands(&self, commands: Vec<MotuCommand>) -> Vec<MotuCommand> {
+    let mut new_commands = Vec::new();
+    for command in commands {
+        match command {
+            MotuCommand::EnableMonitoring => {
+                for group_index in self.monitor_groups.keys() {
+                    new_commands.push(MotuCommand::Unmute(Channel::new(*group_index as i32, ChannelType::Group)));
+                }
+            }
+            _ => {
+                new_commands.push(command);
+            }
+        }
+    }
+    new_commands
+}
 
     pub fn enable_monitoring(&self) -> Result<(), Box<dyn Error>> {
         let commands: Vec<MotuCommand> = self
@@ -125,12 +176,6 @@ impl Motu {
     }
 
     pub fn disable_monitoring(&self) -> Result<(), Box<dyn Error>> {
-        // for (group_index, group_name) in &self.monitor_groups {
-        //     println!("Disabling monitoring for {} {}", group_index, group_name);
-        //     let command = MotuCommand::Mute(Channel::new(*group_index as i32, ChannelType::Group));
-        //     self.send(command)?;
-        // }
-        // println!("Monitoring disabled");
         let commands: Vec<MotuCommand> = self
             .monitor_groups
             .keys()
