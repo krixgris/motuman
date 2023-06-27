@@ -108,7 +108,7 @@ impl Motu {
 
     pub fn run(&self, commands: Vec<MotuCommand>) -> Result<(), Box<dyn Error>> {
         let mut special_commands: Vec<MotuCommand> = commands
-            .iter()
+            .into_iter()
             .filter(|command| 
             {
                command.hash_map().is_some()
