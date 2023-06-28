@@ -117,6 +117,8 @@ impl Motu {
     }
 
     pub fn run(&self, commands: Vec<MotuCommand>) -> Result<(), Box<dyn Error>> {
+        // this can be done better without the first map
+        
         let special_commands: Vec<MotuCommand> = commands
             .into_iter()
             .map(|command| {
