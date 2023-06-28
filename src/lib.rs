@@ -31,7 +31,8 @@ mod tests {
     fn test_enable_monitoring() -> Result<(), Box<dyn Error>> {
         let mock_config = get_mock_config();
         let motu = Motu::new("127.0.0.1", "8000", &mock_config)?;
-        motu.send(MotuCommand::EnableMonitoring)?;
+        let commands: Vec<MotuCommand> = vec![MotuCommand::EnableMonitoring];
+        motu.run(commands)?;
         // Add assertions here to check that monitoring is enabled
         Ok(())
     }
@@ -40,7 +41,8 @@ mod tests {
     fn test_disable_monitoring() -> Result<(), Box<dyn Error>> {
         let mock_config = get_mock_config();
         let motu = Motu::new("127.0.0.1", "8000", &mock_config)?;
-        motu.send(MotuCommand::DisableMonitoring)?;
+        let commands: Vec<MotuCommand> = vec![MotuCommand::DisableMonitoring];
+        motu.run(commands)?;
         // Add assertions here to check that monitoring is disabled
         Ok(())
     }
@@ -49,7 +51,8 @@ mod tests {
     fn test_print_settings() -> Result<(), Box<dyn Error>> {
         let mock_config = get_mock_config();
         let motu = Motu::new("127.0.0.1", "8000", &mock_config)?;
-        motu.send(MotuCommand::PrintSettings)?;
+        let commands: Vec<MotuCommand> = vec![MotuCommand::PrintSettings];
+        motu.run(commands)?;
         // Add assertions here to check that settings are printed
         Ok(())
     }

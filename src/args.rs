@@ -127,13 +127,6 @@ impl std::convert::From<&str> for IpEndpoint {
     }
 }
 
-// impl Into<String> for IpEndpoint {
-//     fn into(self) -> String {
-//         "{}:{}".format(self.address, self.port)
-//     }
-// }
-
-
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
@@ -165,33 +158,6 @@ impl Args {
     pub fn init() -> Self {
         Self::parse()
     }
-
-    // pub fn ip_address(&self) -> Option<String> {
-    //     self.ip_address.as_ref().map(|ip| {
-    //         if ip.contains(':') {
-    //             ip.clone()
-    //         } else {
-    //             format!("{}:{}", ip, self.port.unwrap_or(8000))
-    //         }
-    //     })
-    // }
-
-    // pub fn ip_address_only(&self) -> Option<String> {
-    //     // validate that the IP address is valid
-    //     // todo!("validate that the IP address is valid");
-    //     // split my ip on : and into 4 u8 parts that i can use in the Ipv4Addr::new()
-    //     if let Some(ip) = &self.ip_address {
-    //         if ip.contains(':') {
-    //             let parts: Vec<&str> = ip.split(':').collect();
-    //             let octets: Vec<u8> = parts.iter().map(|part| part.parse().unwrap()).collect();
-    //             let ipv4_addr = Ipv4Addr::new(octets[0], octets[1], octets[2], octets[3]);
-    //             return Some(ipv4_addr.to_string());
-    //         } else {
-    //             return Some(ip.clone());
-    //         }
-    //     }
-    //     None
-    // }
 
     pub fn config_file_name(&self) -> String {
         self.config.clone()

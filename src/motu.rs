@@ -46,15 +46,12 @@ impl MotuCommand {
         let mut map = HashMap::new();
         match self {
             MotuCommand::EnableMonitoring => {
-                // map.insert("/meters/monitoring/enabled".to_string(), "1".to_string());
                 return None;
             }
             MotuCommand::DisableMonitoring => {
-                // map.insert("/meters/monitoring/enabled".to_string(), "0".to_string());
                 return None;
             }
             MotuCommand::PrintSettings => {
-                // map.insert("/print".to_string(), "settings".to_string());
                 return None;
             }
             MotuCommand::Volume { channel, volume } => {
@@ -90,7 +87,6 @@ impl MotuCommand {
                 );
             }
             MotuCommand::Init => {
-                // map.insert("/ch/1/mix/level".to_string(), "0.0".to_string());
                 return None;
             }
         }
@@ -117,149 +113,69 @@ impl Motu {
     }
 
     pub fn run(&self, commands: Vec<MotuCommand>) -> Result<(), Box<dyn Error>> {
-        // this can be done better without the first map
-        
-        let special_commands: Vec<MotuCommand> = commands
+        commands
             .into_iter()
-            .map(|command| {
-                let _ = self.send(command);
-                command
-                // if let Some(hash_map) = command.hash_map() {
-                //     let mut new_commands: Vec<MotuCommand> = vec![];
-                //     for (address, value) in hash_map {
-                //         new_commands.push(MotuCommand::Osc {
-                //             message: OscMessage::new(&address, value.parse::<f32>().unwrap()),
-                //         });
-                //     }
-                //     return new_commands;
-                // }
-                // return vec![command];
-            })
-            .filter(|command| command.hash_map().is_none())
-            .flat_map(|command| {
-                {
-                    let mut new_commands: Vec<MotuCommand> = vec![];
-                    // command
-                    match command {
-                        MotuCommand::EnableMonitoring => {
-                            for group_index in self.monitor_groups.keys() {
-                                new_commands.push(MotuCommand::Unmute(Channel::new(
-                                    *group_index as i32,
-                                    ChannelType::Group,
-                                )));
-                            }
-                            // new_commands
-                            // .push(MotuCommand::Unmute(Channel::new(1, ChannelType::Group)));
-                        }
-                        MotuCommand::DisableMonitoring => {
-                            for group_index in self.monitor_groups.keys() {
-                                new_commands.push(MotuCommand::Mute(Channel::new(
-                                    *group_index as i32,
-                                    ChannelType::Group,
-                                )));
-                            }
-                        }
-                        MotuCommand::Init => {
-                            // new_commands.push(MotuCommand::Volume {
-                            //     channel: Channel::new(1, ChannelType::Group),
-                            //     volume: 0.0,
-                            // });
-                            let mut commands = vec![];
-                            // let delay: u64 = 2;
-                            for (channel_index, channel_name) in &self.channels {
-                                // println!(
-                                //     "Setting volume for channel {} {}",
-                                //     channel_index, channel_name
-                                // );
-                                let command = MotuCommand::Volume {
-                                    channel: Channel::new(*channel_index as i32, ChannelType::Chan),
-                                    volume: 1.0,
-                                };
-                                // std::thread::sleep(std::time::Duration::from_millis(delay));
-                                commands.push(command);
-                                for (aux_channel_index, aux_channel_name) in &self.aux_channels {
-                                    // println!(
-                                    //     "Setting send for channel {} {} to aux channel {} {}",
-                                    //     channel_index, channel_name, aux_channel_index, aux_channel_name
-                                    // );
-                                    let command = MotuCommand::Send {
-                                        channel: Channel::new(
-                                            *channel_index as i32,
-                                            ChannelType::Chan,
-                                        ),
-                                        aux_channel: Channel::new(
-                                            *aux_channel_index as i32,
-                                            ChannelType::Aux,
-                                        ),
-                                        value: 0.0,
-                                    };
-                                    // std::thread::sleep(std::time::Duration::from_millis(delay));
-                                    commands.push(command);
-                                }
-                            }
-
-                            for (group_index, group_name) in &self.monitor_groups {
-                                // println!("Unmuting monitor group {} {}", group_index, group_name);
-                                let command = MotuCommand::Unmute(Channel::new(
-                                    *group_index as i32,
-                                    ChannelType::Group,
-                                ));
-                                // std::thread::sleep(std::time::Duration::from_millis(delay));
-                                commands.push(command);
-                            }
-                            new_commands.append(&mut commands);
-                        }
-                        _ => {
-                            new_commands.push(command);
-                        }
-                    }
-                    new_commands
-                }
-            })
-            .collect();
-        println!("Special commands: {:?}", special_commands);
-
-        // let commands = commands.clone();
-        // commands.append(&mut special_commands.clone());
-
-        // for command in commands {
-        //     // add a small pause of 40ms between commands?
-        //     println!("Sending command: {:?}", command.hash_map());
-        //     self.send(command)?;
-        // }
-        for command in special_commands {
-            // add a small pause of 40ms between commands?
-            println!("Sending command: {:?}", command.hash_map());
-            self.send(command)?;
-        }
+            .flat_map(|command| self.process_commands(command))
+            .filter(|command| command.hash_map().is_some())
+            .for_each(|command| {
+                self.send(command).unwrap();
+            });
         Ok(())
     }
 
-    // pub fn enable_monitoring(&self) -> Result<(), Box<dyn Error>> {
-    //     let commands: Vec<MotuCommand> = self
-    //         .monitor_groups
-    //         .keys()
-    //         .map(|group_index| {
-    //             MotuCommand::Unmute(Channel::new(*group_index as i32, ChannelType::Group))
-    //         })
-    //         .collect();
-    //     println!("Enabling monitoring for {:?}", self.monitor_groups);
-    //     self.run(commands)?;
-    //     Ok(())
-    // }
-
-    // pub fn disable_monitoring(&self) -> Result<(), Box<dyn Error>> {
-    //     let commands: Vec<MotuCommand> = self
-    //         .monitor_groups
-    //         .keys()
-    //         .map(|group_index| {
-    //             MotuCommand::Mute(Channel::new(*group_index as i32, ChannelType::Group))
-    //         })
-    //         .collect();
-    //     println!("Disabling monitoring for {:?}", self.monitor_groups);
-    //     self.run(commands)?;
-    //     Ok(())
-    // }
+    fn process_commands(&self, command: MotuCommand) -> Vec<MotuCommand> {
+        let mut commands: Vec<MotuCommand> = vec![];
+        match command {
+            MotuCommand::PrintSettings => {
+                let _ = self.print_settings();
+                // println!("aux_channels: {:?}", self.aux_channels);
+                // println!("channels: {:?}", self.channels);
+                // println!("monitor_groups: {:?}", self.monitor_groups);
+            }
+            MotuCommand::EnableMonitoring => {
+                for group_index in self.monitor_groups.keys() {
+                    commands.push(MotuCommand::Unmute(Channel::new(
+                        *group_index as i32,
+                        ChannelType::Group,
+                    )));
+                }
+            }
+            MotuCommand::DisableMonitoring => {
+                for group_index in self.monitor_groups.keys() {
+                    commands.push(MotuCommand::Mute(Channel::new(
+                        *group_index as i32,
+                        ChannelType::Group,
+                    )));
+                }
+            }
+            MotuCommand::Init => {
+                self.channels.iter().for_each(|(channel_index, _)| {
+                    let command = MotuCommand::Volume {
+                        channel: Channel::new(*channel_index as i32, ChannelType::Chan),
+                        volume: 1.0,
+                    };
+                    commands.push(command);
+                    self.aux_channels.iter().for_each(|(aux_channel_index, _)| {
+                        let command = MotuCommand::Send {
+                            channel: Channel::new(*channel_index as i32, ChannelType::Chan),
+                            aux_channel: Channel::new(*aux_channel_index as i32, ChannelType::Aux),
+                            value: 0.0,
+                        };
+                        commands.push(command);
+                    });
+                });
+                self.monitor_groups.iter().for_each(|(group_index, _)| {
+                    let command =
+                        MotuCommand::Unmute(Channel::new(*group_index as i32, ChannelType::Group));
+                    commands.push(command);
+                });
+            }
+            _ => {
+                commands.push(command);
+            }
+        }
+        commands
+    }
 
     pub fn print_settings(&self) -> Result<(), Box<dyn Error>> {
         let mut keys: Vec<_> = self.channels.keys().collect();
@@ -284,60 +200,6 @@ impl Motu {
         Ok(())
     }
     pub fn send(&self, command: MotuCommand) -> Result<(), Box<dyn Error>> {
-        // let message = match command {
-        //     MotuCommand::EnableMonitoring => return self.enable_monitoring(),
-
-        //     MotuCommand::DisableMonitoring => return self.disable_monitoring(),
-        //     MotuCommand::PrintSettings => return self.print_settings(),
-        //     MotuCommand::Volume { channel, volume } => {
-        //         let (channel_number, channel_type) =
-        //             (channel.channel_number() as usize, channel.channel_type());
-        //         if !self.channels.contains_key(&channel_number) {
-        //             return Err(format!("Channel {} is not defined", channel_number).into());
-        //         }
-        //         let address = format!("/mix/{}/{}/matrix/fader", channel_type, channel_number);
-
-        //         OscMessage::new(&address, volume)
-        //     }
-        //     MotuCommand::Send {
-        //         channel,
-        //         aux_channel,
-        //         value,
-        //     } => {
-        //         let (channel_number, aux_channel_number, channel_type) = (
-        //             channel.channel_number() as usize,
-        //             aux_channel.channel_number() as usize,
-        //             channel.channel_type(),
-        //         );
-        //         if !self.channels.contains_key(&channel_number) {
-        //             return Err(format!("Channel {} is not defined", channel_number).into());
-        //         }
-        //         if !self.aux_channels.contains_key(&aux_channel_number) {
-        //             return Err(format!("Aux channel {} is not defined", aux_channel_number).into());
-        //         }
-        //         let address = format!(
-        //             "/mix/{}/{}/matrix/aux/{}/send",
-        //             channel_type, channel_number, aux_channel_number
-        //         );
-
-        //         OscMessage::new(&address, value)
-        //     }
-        //     MotuCommand::Mute(channel) => {
-        //         let channel_number = channel.channel_number();
-        //         let address = format!("/mix/group/{}/matrix/mute", channel_number);
-        //         OscMessage::new(&address, 1.0)
-        //     }
-        //     MotuCommand::Unmute(channel) => {
-        //         let channel_number = channel.channel_number();
-        //         let address = format!("/mix/group/{}/matrix/mute", channel_number);
-        //         OscMessage::new(&address, 0.0)
-        //     }
-        //     MotuCommand::Init => return self.init_settings(),
-        // };
-
-        // OscMessage::new(&address, 0.0)
-
-        // create an OscMessage with the key and value from the hash_map() method on commands
         let message = match command.hash_map() {
             Some(message) => message,
             None => return Err("No message found".into()),
@@ -348,51 +210,6 @@ impl Motu {
             let packet = OscPacket::Message(message);
             let _ = self.client.send(packet);
         });
-        // let message = OscMessage::new(&command.hash_map().key(), command.hash_map().value());
-
-        Ok(())
-    }
-
-    fn init_settings(&self) -> Result<(), Box<dyn Error>> {
-        // loop through all channels and set the volume to 1.0, and then loop through all sends for each channel and set them to 0
-        // in a second loop after this, loop through all the monitor groups and unmute them
-        let mut commands = vec![];
-        let delay: u64 = 2;
-        for (channel_index, channel_name) in &self.channels {
-            println!(
-                "Setting volume for channel {} {}",
-                channel_index, channel_name
-            );
-            let command = MotuCommand::Volume {
-                channel: Channel::new(*channel_index as i32, ChannelType::Chan),
-                volume: 1.0,
-            };
-            std::thread::sleep(std::time::Duration::from_millis(delay));
-            commands.push(command);
-            for (aux_channel_index, aux_channel_name) in &self.aux_channels {
-                println!(
-                    "Setting send for channel {} {} to aux channel {} {}",
-                    channel_index, channel_name, aux_channel_index, aux_channel_name
-                );
-                let command = MotuCommand::Send {
-                    channel: Channel::new(*channel_index as i32, ChannelType::Chan),
-                    aux_channel: Channel::new(*aux_channel_index as i32, ChannelType::Aux),
-                    value: 0.0,
-                };
-                std::thread::sleep(std::time::Duration::from_millis(delay));
-                commands.push(command);
-            }
-        }
-
-        for (group_index, group_name) in &self.monitor_groups {
-            println!("Unmuting monitor group {} {}", group_index, group_name);
-            let command =
-                MotuCommand::Unmute(Channel::new(*group_index as i32, ChannelType::Group));
-            std::thread::sleep(std::time::Duration::from_millis(delay));
-            commands.push(command);
-        }
-        self.run(commands)?;
-
         Ok(())
     }
 }
