@@ -82,7 +82,14 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // _conn_in needs to be a named parameter, because it needs to be kept alive until the end of the scope
     let _conn_in = midi_in.connect(in_port, "midir-read-input", move |stamp, message, _| {
-        println!("{}: {:?} (len = {})", stamp, message, message.len());
+        match message[0] {
+            0x90 => println!("{}: Note on: {:?} (len = {})", stamp, message, message.len()),
+            0x80 => println!("{}: Note off: {:?} (len = {})", stamp, message, message.len()),
+            // match decimal 176 as hex
+            0xB0 => println!("{}: CC: {:?} (len = {})", stamp, message, message.len()),
+            _ => println!("{}: Else: {:?} (len = {})", stamp, message, message.len()),
+        }
+        // println!("{}: {:?} (len = {})", stamp, message, message.len());
     }, ())?;
     
     println!("Connection open, reading input from '{}' (press enter to exit) ...", in_port_name);
