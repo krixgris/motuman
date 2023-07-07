@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use std::error::Error;
 
 pub mod channel;
+
 mod osc;
 
 pub trait OscSender {
