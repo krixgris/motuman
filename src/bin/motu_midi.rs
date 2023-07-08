@@ -4,6 +4,28 @@ use std::io::{stdin, stdout, Write};
 // use std::time::Duration;
 
 use midir::{Ignore, MidiInput};
+use motuman::motu::MotuCommand;
+
+struct MidiCommand{
+    // message field should be an array of 3 u8
+    message: [u8; 3],
+    motu_command: MotuCommand
+}
+impl MidiCommand {
+    fn new(message: &[u8], motu_command: MotuCommand) -> Option<Self> {
+        if message.len() == 3 {
+            let mut message_array: [u8; 3] = [0; 3];
+            message_array.copy_from_slice(message);
+            Some(Self {
+                message: message_array,
+                motu_command
+            })
+        }
+        else {
+            None
+        }
+    }
+}
 
 /*
 fn main() {
