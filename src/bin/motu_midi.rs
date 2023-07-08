@@ -6,10 +6,10 @@ use std::io::{stdin, stdout, Write};
 use midir::{Ignore, MidiInput};
 use motuman::motu::MotuCommand;
 
-struct MidiCommand{
+struct MidiCommand {
     // message field should be an array of 3 u8
     message: [u8; 3],
-    motu_command: MotuCommand
+    motu_command: MotuCommand,
 }
 impl MidiCommand {
     fn new(message: &[u8], motu_command: MotuCommand) -> Option<Self> {
@@ -18,10 +18,85 @@ impl MidiCommand {
             message_array.copy_from_slice(message);
             Some(Self {
                 message: message_array,
-                motu_command
+                motu_command,
             })
+        } else {
+            None
         }
-        else {
+    }
+}
+
+trait MidiMessage {
+    fn is_midi_cc(&self) -> bool;
+
+    fn is_midi_note_on(&self) -> bool {
+        // if self.len() == 3 && self[0] >> 4 == 0x9 {
+        //     return true;
+        // }
+        false
+    }
+
+    fn is_midi_note_off(&self) -> bool {
+        // if self.len() == 3 && self[0] >> 4 == 0x8 {
+        //     return true;
+        // }
+        false
+    }
+
+    fn is_midi(&self) -> bool {
+        false
+    }
+
+    fn channel(&self) -> Option<u8> {
+        None
+    }
+
+    fn midi_type(&self) -> Option<u8> {
+        None
+    }
+}
+
+impl MidiMessage for &[u8] {
+    fn is_midi_cc(&self) -> bool {
+        if self.len() == 3 && self[0] >> 4 == 0xB {
+            return true;
+        }
+        false
+    }
+
+    fn is_midi_note_off(&self) -> bool {
+        if self.len() == 3 && self[0] >> 4 == 0x8 {
+            return true;
+        }
+        false
+    }
+
+    fn is_midi_note_on(&self) -> bool {
+        if self.len() == 3 && self[0] >> 4 == 0x9 {
+            return true;
+        }
+        false
+    }
+
+    fn is_midi(&self) -> bool {
+        if self.is_midi_cc() || self.is_midi_note_on() || self.is_midi_note_off() {
+            return true;
+        }
+        false
+    }
+
+    fn channel(&self) -> Option<u8> {
+        if self.is_midi() {
+            Some(self[0] & 0x0F)
+        } else {
+            None
+        }
+    }
+
+    fn midi_type(&self) -> Option<u8> {
+        if self.is_midi() {
+            Some(self[0] >> 4)
+        } else {
             None
         }
     }
@@ -105,47 +180,21 @@ fn run() -> Result<(), Box<dyn Error>> {
     println!("\nOpening connection");
     let in_port_name = midi_in.port_name(in_port)?;
 
-    // _conn_in needs to be a named parameter, because it needs to be kept alive until the end of the scope
     let _conn_in = midi_in.connect(
         in_port,
         "midir-read-input",
         move |stamp, message, _| {
-            if message.len() == 3 {
-                let (channel, midi_type, midi_num, midi_value) =
-                    (message[0] & 0x0F, message[0] >> 4, message[1], message[2]);
+            if message.is_midi() {
                 println!(
                     "{}: Channel: {}, Type: {}, Num: {}, Value: {}, (len = {})",
-                    stamp, channel, midi_type, midi_num, midi_value, message[0]
+                    stamp,
+                    message.channel().unwrap(),
+                    message.midi_type().unwrap(),
+                    message[1],
+                    message[2],
+                    message.len()
                 );
-                // println!("{}: {:?} (len = {})", stamp, message, message.len());
             }
-            match message[0] {
-                // bitwise match 4 last bits to be channel number, and first 4 bits to be the message type
-                // match channel 16 midi note on
-                // bitwise or on message
-                0x90 => println!(
-                    "{}: Note on: {:?} (len = {})",
-                    stamp,
-                    message,
-                    message.len()
-                ),
-                0x80 => println!(
-                    "{}: Note off: {:?} (len = {})",
-                    stamp,
-                    message,
-                    message.len()
-                ),
-                // match decimal 176 as hex
-
-                // Alternatively, you can use bitwise OR to combine two u8 values into a single byte:
-                // let high = 0b1101;
-                // let low = 0b0110;
-                // let byte = (high << 4) | low;
-                // println!("Byte: {:08b}", byte);
-                // match midi cc on channel 16
-                _ => println!("{}: Else: {:?} (len = {})", stamp, message, message.len()),
-            }
-            // println!("{}: {:?} (len = {})", stamp, message, message.len());
         },
         (),
     )?;
