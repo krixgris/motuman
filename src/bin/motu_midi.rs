@@ -1,10 +1,75 @@
 use std::error::Error;
+use std::fmt::Display;
 use std::io::{stdin, stdout, Write};
-// use std::thread;
-// use std::time::Duration;
 
 use midir::{Ignore, MidiInput};
 use motuman::motu::MotuCommand;
+
+#[derive(Debug)]
+enum MidiType {
+    CC,
+    NoteOn,
+    NoteOff,
+    Undefined,
+}
+
+impl Display for MidiType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MidiType::CC => write!(f, "CC"),
+            MidiType::NoteOn => write!(f, "NoteOn"),
+            MidiType::NoteOff => write!(f, "NoteOff"),
+            MidiType::Undefined => write!(f, "UNDEFINED"),
+        }
+    }
+}
+
+impl From<&[u8]> for MidiType {
+    fn from(message: &[u8]) -> Self {
+        if message.len() == 3 && message[0] >> 4 == 0xB {
+            MidiType::CC
+        } else if message.len() == 3 && message[0] >> 4 == 0x9 {
+            MidiType::NoteOn
+        } else if message.len() == 3 && message[0] >> 4 == 0x8 {
+            MidiType::NoteOff
+        } else {
+            MidiType::Undefined
+        }
+    }
+}
+
+impl From<&u8> for MidiType {
+    fn from(midi_type: &u8) -> Self {
+        match midi_type >> 4 {
+            0xB => MidiType::CC,
+            0x9 => MidiType::NoteOn,
+            0x8 => MidiType::NoteOff,
+            _ => MidiType::Undefined,
+        }
+    }
+}
+
+impl From<MidiType> for u8 {
+    fn from(midi_type: MidiType) -> Self {
+        match midi_type {
+            MidiType::CC => 0xB,
+            MidiType::NoteOn => 0x9,
+            MidiType::NoteOff => 0x8,
+            MidiType::Undefined => 0xFF,
+        }
+    }
+}
+
+impl From<MidiType> for &u8 {
+    fn from(midi_type: MidiType) -> Self {
+        match midi_type {
+            MidiType::CC => &0xB,
+            MidiType::NoteOn => &0x9,
+            MidiType::NoteOff => &0x8,
+            MidiType::Undefined => &0xFF,
+        }
+    }
+}
 
 struct MidiCommand {
     // message field should be an array of 3 u8
@@ -27,22 +92,6 @@ impl MidiCommand {
 }
 
 trait MidiMessage {
-    fn is_midi_cc(&self) -> bool;
-
-    fn is_midi_note_on(&self) -> bool {
-        // if self.len() == 3 && self[0] >> 4 == 0x9 {
-        //     return true;
-        // }
-        false
-    }
-
-    fn is_midi_note_off(&self) -> bool {
-        // if self.len() == 3 && self[0] >> 4 == 0x8 {
-        //     return true;
-        // }
-        false
-    }
-
     fn is_midi(&self) -> bool {
         false
     }
@@ -51,53 +100,28 @@ trait MidiMessage {
         None
     }
 
-    fn midi_type(&self) -> Option<u8> {
+    fn midi_type(&self) -> Option<MidiType> {
         None
     }
 }
 
 impl MidiMessage for &[u8] {
-    fn is_midi_cc(&self) -> bool {
-        if self.len() == 3 && self[0] >> 4 == 0xB {
-            return true;
-        }
-        false
-    }
-
-    fn is_midi_note_off(&self) -> bool {
-        if self.len() == 3 && self[0] >> 4 == 0x8 {
-            return true;
-        }
-        false
-    }
-
-    fn is_midi_note_on(&self) -> bool {
-        if self.len() == 3 && self[0] >> 4 == 0x9 {
-            return true;
-        }
-        false
-    }
-
     fn is_midi(&self) -> bool {
-        if self.is_midi_cc() || self.is_midi_note_on() || self.is_midi_note_off() {
-            return true;
-        }
-        false
+        self.midi_type().is_some()
     }
 
     fn channel(&self) -> Option<u8> {
         if self.is_midi() {
-            Some(self[0] & 0x0F)
+            Some((self[0] & 0x0F) + 1)
         } else {
             None
         }
     }
 
-    fn midi_type(&self) -> Option<u8> {
-        if self.is_midi() {
-            Some(self[0] >> 4)
-        } else {
-            None
+    fn midi_type(&self) -> Option<MidiType> {
+        match self {
+            &[midi_type, _, _] => Some(midi_type.into()),
+            _ => None,
         }
     }
 }
