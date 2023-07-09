@@ -875,7 +875,7 @@
                 "type":"osc",
                 "attribute":"value",
                 "multi":1,
-                "address":"/mix/chan/31/matrix/aux/4/aux/2/send",
+                "address":"/mix/chan/31/matrix/aux/2/send",
                 "min":0.0,
                 "max":1.0
             },
