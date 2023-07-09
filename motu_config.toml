@@ -33,4 +33,15 @@ ip_address = "127.0.0.1:8000"
 45 = "Mod_M4"
 46 = "Mod_1_2"
 
+[midi_config]
+input = "MIDIIN2 (Arturia KeyStep 32)"
+output = "MIDIOUT2 (Arturia KeyStep 32)"
+midi_channel = 1
 
+[midi_mapping_cc]
+34 = "vol(2)"
+35 = "vol(4)"
+74 = "send(2,4)"
+88 = "init"
+89 = "monitor_on"
+90 = "monitor_off"
