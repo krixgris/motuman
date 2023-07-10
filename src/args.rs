@@ -1,11 +1,12 @@
 use crate::motu;
 use clap::Parser;
+use serde::Deserialize;
 // use std::net::IpAddr;
 // use std::net::Ipv4Addr;
 use std::fmt;
 // use std::str::FromStr;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize, Default)]
 pub struct IpAddress {
     octets: [u8; 4],
 }
@@ -57,7 +58,7 @@ impl fmt::Display for IpAddress {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize, Default)]
 pub struct IpEndpoint {
     pub address: IpAddress,
     pub port: u16,

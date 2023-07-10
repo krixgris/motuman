@@ -7,17 +7,23 @@ pub mod motu;
 mod tests {
     use crate::{
         args::IpEndpoint,
-        config::Config,
+        config::{Config, NetworkConfig},
         motu::{channel::Channel, channel::ChannelType, Motu, MotuCommand},
     };
     use std::{collections::HashMap, error::Error};
 
     fn get_mock_config() -> Config {
         let mut mock_config = Config {
+            network:NetworkConfig {
+                ip_address: IpEndpoint::from("127.0.0.1:8000")
+            },
             ip_address: IpEndpoint::from("127.0.0.1:8000"),
             aux_channels: HashMap::new(),
             channels: HashMap::new(),
             monitor_groups: HashMap::new(),
+            midi_config: None,
+            midi_mapping_cc: HashMap::new(),
+            midi_mapping_note_on: HashMap::new(),
         };
         mock_config.aux_channels.insert(1, String::from("Aux 1"));
         mock_config.channels.insert(1, String::from("Channel 1"));
