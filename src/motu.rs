@@ -128,6 +128,29 @@ impl std::str::FromStr for MotuCommand {
                 } else {
                     return Err("Invalid send".to_string());
                 }
+            } else if s.contains("unmute") {
+                let unmute = s.replace("unmute(", "").replace(')', "").parse::<i32>();
+                match dbg!(unmute) {
+                    Ok(unmute) => MotuCommand::Unmute(Channel::new(unmute, ChannelType::Chan)),
+                    Err(_) => return Err("Invalid unmute".to_string()),
+                }
+            } else if s.contains("mute") {
+                let mute = s.replace("mute(", "").replace(')', "").parse::<i32>();
+                match mute {
+                    Ok(mute) => MotuCommand::Mute(Channel::new(mute, ChannelType::Chan)),
+                    Err(_) => return Err("Invalid mute".to_string()),
+                }
+            } else if s.contains("monitor") {
+                let monitor = s.replace("monitor(", "").replace(')', "");
+                match monitor.as_str() {
+                    "on" => MotuCommand::EnableMonitoring,
+                    "off" => MotuCommand::DisableMonitoring,
+                    _ => return Err("Invalid monitor".to_string()),
+                }
+            } else if s.contains("print") {
+                MotuCommand::PrintSettings
+            } else if s.contains("init") {
+                MotuCommand::Init
             } else {
                 return Err("Invalid command".to_string());
             }
@@ -268,7 +291,7 @@ impl Motu {
             None => return Err("No message found".into()),
         };
         message.iter().for_each(|(key, value)| {
-            println!("{}: {}", key, value);
+            // println!("{}: {}", key, value);
             let message = OscMessage::new(key, value.parse::<f32>().unwrap_or_default());
             let packet = OscPacket::Message(message);
             let _ = self.client.send(packet);

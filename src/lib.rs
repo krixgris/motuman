@@ -24,6 +24,7 @@ mod tests {
             midi_config: None,
             midi_mapping_cc: HashMap::new(),
             midi_mapping_note_on: HashMap::new(),
+            midi_mapping_note_off: HashMap::new(),
         };
         mock_config.aux_channels.insert(1, String::from("Aux 1"));
         mock_config.channels.insert(1, String::from("Channel 1"));

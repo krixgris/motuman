@@ -49,8 +49,10 @@ pub struct Config {
     pub midi_config: Option<MidiConfig>,
     #[serde_as(as = "HashMap<DisplayFromStr, DisplayFromStr>")]
     pub midi_mapping_cc: HashMap<usize, MotuCommand>,
-    #[serde_as(as = "HashMap<DisplayFromStr, _>")]
-    pub midi_mapping_note_on: HashMap<usize, String>,
+    #[serde_as(as = "HashMap<DisplayFromStr, DisplayFromStr>")]
+    pub midi_mapping_note_on: HashMap<usize, MotuCommand>,
+    #[serde_as(as = "HashMap<DisplayFromStr, DisplayFromStr>")]
+    pub midi_mapping_note_off: HashMap<usize, MotuCommand>,
 }
 
 impl Config {

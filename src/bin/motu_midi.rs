@@ -3,7 +3,7 @@ use std::fmt::Display;
 use std::io::{stdin, stdout, Write};
 
 use midir::{Ignore, MidiInput};
-use motuman::motu::{Motu, MotuCommand, self};
+use motuman::motu::{self, MotuCommand};
 
 use motuman::config;
 
@@ -73,6 +73,7 @@ impl From<MidiType> for &u8 {
     }
 }
 
+#[derive(Debug)]
 struct MidiCommand {
     // message field should be an array of 3 u8
     message: [u8; 3],
@@ -179,38 +180,70 @@ fn run() -> Result<(), Box<dyn Error>> {
     });
 
     let mut midi_commands: Vec<MidiCommand> = Vec::new();
-    let midi_channel = config.midi_config.clone().unwrap();
+    let midi_channel = config.midi_config.clone().unwrap().midi_channel - 1;
 
-    // read the midi mapping from the config file
-    // for (key, value) in config.midi_mapping_cc {
-    //     println!("{}: {}", key, value);
-    //     // let midi_message: Vec<&str> = dbg!(value.split(",").collect());
-    //     let midi_message = dbg!(value);
+    let midi_commands_cc: Vec<MidiCommand> = config
+        .midi_mapping_cc
+        .iter()
+        .map(|(key, value)| {
+            let cc_num: u8 = *key as u8;
+            let midi_channel_type = (midi_channel) + (0x0B << 4);
+            let midi_message: [u8; 3] = [midi_channel_type, cc_num, 0];
+            let midi_command = MidiCommand::new(&midi_message, *value);
+            midi_command.unwrap()
+        })
+        .collect();
 
+    let midi_commands_note_on: Vec<MidiCommand> = config
+        .midi_mapping_note_on
+        .iter()
+        .map(|(key, value)| {
+            let note_num: u8 = *key as u8;
+            let midi_channel_type = (midi_channel) + (0x09 << 4);
+            let midi_message: [u8; 3] = [midi_channel_type, note_num, 0];
+            let midi_command = MidiCommand::new(&midi_message, *value);
+            midi_command.unwrap()
+        })
+        .collect();
+
+    let midi_commands_note_off: Vec<MidiCommand> = config
+        .midi_mapping_note_off
+        .iter()
+        .map(|(key, value)| {
+            let note_num: u8 = *key as u8;
+            let midi_channel_type = (midi_channel) + (0x08 << 4);
+            let midi_message: [u8; 3] = [midi_channel_type, note_num, 0];
+            let midi_command = MidiCommand::new(&midi_message, *value);
+            midi_command.unwrap()
+        })
+        .collect();
+
+    midi_commands.extend(midi_commands_cc);
+    midi_commands.extend(midi_commands_note_on);
+    midi_commands.extend(midi_commands_note_off);
+
+    let motu_commands: Vec<MotuCommand> = midi_commands
+        .iter()
+        .map(|midi_command| midi_command.motu_command)
+        .collect();
+
+    println!("MIDI Commands: {:?}", midi_commands);
+
+    // let ip: &str = &config.ip_address.address.to_string();
+    // let port = &config.ip_address.port.to_string();
+    // // Create a new MOTU object and run the specified commands
+    // match motu::Motu::new(ip, port, &config) {
+    //     Ok(motu) => {
+    //         if let Err(e) = motu.run(motu_commands) {
+    //             eprintln!("Application error: {e}");
+    //             // process::exit(1);
+    //         }
+    //     }
+    //     Err(e) => {
+    //         eprintln!("Error creating Motu object: {e}");
+    //         // process::exit(1);
+    //     }
     // }
-    
-    let motu_commands: Vec<MotuCommand> =
-    config.midi_mapping_cc.iter().map(|(key, value)| {
-        let motu_command = value.clone();
-        motu_command
-    }).collect();
-    
-    let ip: &str = &config.ip_address.address.to_string();
-    let port = &config.ip_address.port.to_string();
-    // Create a new MOTU object and run the specified commands
-    match motu::Motu::new(ip, port, &config) {
-        Ok(motu) => {
-            if let Err(e) = motu.run(motu_commands) {
-                eprintln!("Application error: {e}");
-                // process::exit(1);
-            }
-        }
-        Err(e) => {
-            eprintln!("Error creating Motu object: {e}");
-            // process::exit(1);
-        }
-    }
-
 
     let mut input = String::new();
 
