@@ -4,7 +4,20 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 
+use crate::motu::MotuCommand;
+
 use crate::args::IpEndpoint;
+
+#[derive(Debug, Deserialize)]
+pub enum MidiCommand {
+    #[serde(rename = "vol")]
+    Vol(usize),
+    // #[serde(rename = "send")]
+    send(usize, usize),
+    Init,
+    MonitorOn,
+    MonitorOff
+}
 
 #[derive(Debug, Deserialize)]
 pub struct MidiConfig {
@@ -35,7 +48,7 @@ pub struct Config {
     pub monitor_groups: HashMap<usize, String>,
     pub midi_config: Option<MidiConfig>,
     #[serde_as(as = "HashMap<DisplayFromStr, _>")]
-    pub midi_mapping_cc: HashMap<usize, String>,
+    pub midi_mapping_cc: HashMap<usize, MidiCommand>,
     #[serde_as(as = "HashMap<DisplayFromStr, _>")]
     pub midi_mapping_note_on: HashMap<usize, String>,
 }

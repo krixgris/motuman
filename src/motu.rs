@@ -95,6 +95,45 @@ impl MotuCommand {
     }
 }
 
+impl std::str::FromStr for MotuCommand {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, String> {
+        let motu_command: MotuCommand = {
+            if s.contains("vol") {
+                let vol = s.replace("vol(", "").replace(')', "").parse::<i32>();
+                match vol {
+                    Ok(vol) => MotuCommand::Volume {
+                        channel: Channel::new(vol, ChannelType::Chan),
+                        volume: 0.0,
+                    },
+                    Err(_) => return Err("Invalid volume".to_string()),
+                }
+            // } else if s.contains("send") {
+            //     let send = s.replace("send(", "").replace(')', "");
+            //     // if send contains 2 integers, it's a send command
+            //     let send: Vec<&str> = send.split(',').collect();
+            //     if send.len() == 2 {
+            //         let (channel, aux_channel) = (send[0].parse::<i32>(), send[1].parse::<i32>());
+            //         match (channel, aux_channel) {
+            //             (Ok(channel), Ok(aux_channel)) => MotuCommand::Send {
+            //                 channel: Channel::new(channel, ChannelType::Chan),
+            //                 aux_channel: Channel::new(aux_channel, ChannelType::Aux),
+            //                 value: 0.0,
+            //             },
+            //             _ => return Err("Invalid send".to_string()),
+            //         }
+            //         return Err("Invalid send".to_string());
+            //     }
+            //     return Err("Not yet implemented".to_string());
+            } else {
+                return Err("Invalid command".to_string());
+            }
+        };
+        Ok(motu_command)
+    }
+}
+
 pub struct Motu {
     client: osc::OscClient,
     aux_channels: HashMap<usize, String>,
