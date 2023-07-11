@@ -77,7 +77,11 @@ impl From<MidiType> for &u8 {
 struct MidiCommand {
     // message field should be an array of 3 u8
     message: [u8; 3],
+    midi_value: u8,
+    prev_midi_value: u8,
     motu_command: MotuCommand,
+    timestamp: u64,
+    prev_timestamp: u64,
 }
 impl MidiCommand {
     fn new(message: &[u8], motu_command: MotuCommand) -> Option<Self> {
@@ -87,11 +91,89 @@ impl MidiCommand {
             Some(Self {
                 message: message_array,
                 motu_command,
+                timestamp: 10000,
+                midi_value: 0,
+                prev_midi_value: 127,
+                prev_timestamp: 0,
             })
         } else {
             None
         }
     }
+
+    fn delta_value(&self) -> f32 {
+        // abs delta value
+        (self.midi_value as f32 - self.prev_midi_value as f32).abs()
+    }
+
+    fn delta_time(&self) -> u64 {
+        self.timestamp - self.prev_timestamp
+    }
+
+    /// Determines whether the MIDI command should be throttled based on the delta time and delta value.
+    /// Returns `true` if the command should be throttled, `false` otherwise.
+    fn do_throttle(&mut self) -> bool {
+        let delta_time = self.delta_time();
+        let delta_value = 
+        
+        {
+            if delta_time > 1000 {
+                1000.0
+            }
+            else {
+                self.delta_value()
+            }
+        };
+        
+        
+      
+        if (100 >= delta_time && delta_time > 40 && delta_value > 20.0)
+            || (150 >= delta_time && delta_time > 100 && delta_value > 4.0)
+            || (250 >= delta_time && delta_time > 150 && delta_value > 2.0)
+            || (delta_time > 250 && delta_value > 0.0)
+            || delta_value > 999.0
+            || self.midi_value == 0
+            || self.midi_value == 127
+        {
+            // if true, set the prev_value and prev_time to the current values
+            self.prev_midi_value = self.midi_value;
+            self.prev_timestamp = self.timestamp;
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn set_midi_value(&mut self, midi_value: u8) -> Result<(), String> {
+        self.midi_value = midi_value;
+        self.prev_timestamp = self.timestamp;
+        self.timestamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_err(|e| e.to_string())?
+            .as_millis() as u64;
+
+        self.motu_command = match self.motu_command {
+            MotuCommand::Volume { channel, volume: _ } => MotuCommand::Volume {
+                channel,
+                volume: easing_circ(midi_value as f32 / 127.0),
+            },
+            MotuCommand::Send {
+                channel,
+                aux_channel,
+                value: _,
+            } => MotuCommand::Send {
+                channel,
+                aux_channel,
+                value: easing_circ(midi_value as f32 / 127.0),
+            },
+            _ => self.motu_command,
+        };
+        Ok(())
+    }
+}
+
+fn easing_circ(x: f32) -> f32 {
+    1.0 - (1.0 - x).sqrt()
 }
 
 trait MidiMessage {
@@ -222,28 +304,10 @@ fn run() -> Result<(), Box<dyn Error>> {
     midi_commands.extend(midi_commands_note_on);
     midi_commands.extend(midi_commands_note_off);
 
-    let motu_commands: Vec<MotuCommand> = midi_commands
-        .iter()
-        .map(|midi_command| midi_command.motu_command)
-        .collect();
-
     println!("MIDI Commands: {:?}", midi_commands);
 
     let ip: &str = &config.ip_address.address.to_string();
     let port = &config.ip_address.port.to_string();
-    // Create a new MOTU object and run the specified commands
-    // match motu::Motu::new(ip, port, &config) {
-    //     Ok(motu) => {
-    //         if let Err(e) = motu.run(motu_commands) {
-    //             eprintln!("Application error: {e}");
-    //             // process::exit(1);
-    //         }
-    //     }
-    //     Err(e) => {
-    //         eprintln!("Error creating Motu object: {e}");
-    //         // process::exit(1);
-    //     }
-    // }
     let motu_interface = motu::Motu::new(ip, port, &config)
         .expect("Error creating Motu object, check motu_config.toml file.");
 
@@ -287,30 +351,38 @@ fn run() -> Result<(), Box<dyn Error>> {
         move |stamp, message, _| {
             if message.is_midi() {
                 // match incoming message with the list of midi_commands, where the message field can match on the first 2 elements
-                let midi_command = midi_commands.iter().find(|midi_command| {
+                let midi_command = midi_commands.iter_mut().find(|midi_command| {
                     midi_command.message[0] == message[0] && midi_command.message[1] == message[1]
                 });
                 match midi_command {
                     Some(midi_command) => {
-                        midi_command.motu_command.set_midi_value(message[2]);
-                        println!("MIDI Command: {:?}", midi_command);
-                        motu_interface
-                            .run(vec![midi_command.motu_command.set_midi_value(message[2])])
-                            .expect("Error running MOTU command.");
+                        // will always be Ok()
+                        let _ = midi_command.set_midi_value(message[2]);
+
+                        if midi_command.do_throttle() {
+                            println!("MIDI Command: {:?}", midi_command);
+                            motu_interface
+                                .run(vec![midi_command.motu_command])
+                                .expect("Error running MOTU command.");
+                        }
+                        else {
+                            println!("Throttling MIDI Command: {:?}", midi_command);
+                        }
+                        // println!("MIDI Command: {:?}", midi_command);
                     }
                     None => {
                         println!("MIDI Command not found: {:?}", message);
                     }
                 }
-                println!(
-                    "{}: Channel: {}, Type: {}, Num: {}, Value: {}, (len = {})",
-                    stamp,
-                    message.channel().unwrap(),
-                    message.midi_type().unwrap(),
-                    message[1],
-                    message[2],
-                    message.len()
-                );
+                // println!(
+                //     "{}: Channel: {}, Type: {}, Num: {}, Value: {}, (len = {})",
+                //     stamp,
+                //     message.channel().unwrap(),
+                //     message.midi_type().unwrap(),
+                //     message[1],
+                //     message[2],
+                //     message.len()
+                // );
                 // let (channel, message) =
                 //     (message.channel().unwrap() - 1, message.midi_type().unwrap());
             }
