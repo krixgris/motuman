@@ -19,7 +19,7 @@ pub enum MidiCommand {
     MonitorOff
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct MidiConfig {
     input: String,
     output: String,
@@ -47,8 +47,8 @@ pub struct Config {
     #[serde_as(as = "HashMap<DisplayFromStr, _>")]
     pub monitor_groups: HashMap<usize, String>,
     pub midi_config: Option<MidiConfig>,
-    #[serde_as(as = "HashMap<DisplayFromStr, _>")]
-    pub midi_mapping_cc: HashMap<usize, MidiCommand>,
+    #[serde_as(as = "HashMap<DisplayFromStr, DisplayFromStr>")]
+    pub midi_mapping_cc: HashMap<usize, MotuCommand>,
     #[serde_as(as = "HashMap<DisplayFromStr, _>")]
     pub midi_mapping_note_on: HashMap<usize, String>,
 }

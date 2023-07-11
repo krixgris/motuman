@@ -40,3 +40,9 @@ impl Channel {
         &self.channel_type
     }
 }
+
+impl Display for Channel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{type}({number})", type = self.channel_type, number = self.channel_number)
+    }
+}

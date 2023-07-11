@@ -3,7 +3,7 @@ use std::fmt::Display;
 use std::io::{stdin, stdout, Write};
 
 use midir::{Ignore, MidiInput};
-use motuman::motu::{Motu, MotuCommand};
+use motuman::motu::{Motu, MotuCommand, self};
 
 use motuman::config;
 
@@ -179,13 +179,38 @@ fn run() -> Result<(), Box<dyn Error>> {
     });
 
     let mut midi_commands: Vec<MidiCommand> = Vec::new();
-    let midi_channel = config.midi_config.unwrap();
+    let midi_channel = config.midi_config.clone().unwrap();
 
     // read the midi mapping from the config file
-    for (key, value) in config.midi_mapping_cc {
-        println!("{}: {}", key, value);
-        let midi_message: Vec<&str> = dbg!(value.split(",").collect());
+    // for (key, value) in config.midi_mapping_cc {
+    //     println!("{}: {}", key, value);
+    //     // let midi_message: Vec<&str> = dbg!(value.split(",").collect());
+    //     let midi_message = dbg!(value);
+
+    // }
+    
+    let motu_commands: Vec<MotuCommand> =
+    config.midi_mapping_cc.iter().map(|(key, value)| {
+        let motu_command = value.clone();
+        motu_command
+    }).collect();
+    
+    let ip: &str = &config.ip_address.address.to_string();
+    let port = &config.ip_address.port.to_string();
+    // Create a new MOTU object and run the specified commands
+    match motu::Motu::new(ip, port, &config) {
+        Ok(motu) => {
+            if let Err(e) = motu.run(motu_commands) {
+                eprintln!("Application error: {e}");
+                // process::exit(1);
+            }
+        }
+        Err(e) => {
+            eprintln!("Error creating Motu object: {e}");
+            // process::exit(1);
+        }
     }
+
 
     let mut input = String::new();
 

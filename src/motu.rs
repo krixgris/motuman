@@ -6,6 +6,8 @@ use rosc::OscPacket;
 use rosc::OscType;
 use std::collections::HashMap;
 use std::error::Error;
+use std::fmt::Display;
+use std::fmt::Formatter;
 
 pub mod channel;
 
@@ -105,32 +107,53 @@ impl std::str::FromStr for MotuCommand {
                 match vol {
                     Ok(vol) => MotuCommand::Volume {
                         channel: Channel::new(vol, ChannelType::Chan),
-                        volume: 0.0,
+                        volume: 0.66,
                     },
                     Err(_) => return Err("Invalid volume".to_string()),
                 }
-            // } else if s.contains("send") {
-            //     let send = s.replace("send(", "").replace(')', "");
-            //     // if send contains 2 integers, it's a send command
-            //     let send: Vec<&str> = send.split(',').collect();
-            //     if send.len() == 2 {
-            //         let (channel, aux_channel) = (send[0].parse::<i32>(), send[1].parse::<i32>());
-            //         match (channel, aux_channel) {
-            //             (Ok(channel), Ok(aux_channel)) => MotuCommand::Send {
-            //                 channel: Channel::new(channel, ChannelType::Chan),
-            //                 aux_channel: Channel::new(aux_channel, ChannelType::Aux),
-            //                 value: 0.0,
-            //             },
-            //             _ => return Err("Invalid send".to_string()),
-            //         }
-            //         return Err("Invalid send".to_string());
-            //     }
-            //     return Err("Not yet implemented".to_string());
+            } else if s.contains("send") {
+                let send = s.replace("send(", "").replace(')', "");
+                // if send contains 2 integers, it's a send command
+                let send: Vec<&str> = send.split(',').collect();
+                if send.len() == 2 {
+                    let (channel, aux_channel) = (send[0].parse::<i32>(), send[1].parse::<i32>());
+                    match (channel, aux_channel) {
+                        (Ok(channel), Ok(aux_channel)) => MotuCommand::Send {
+                            channel: Channel::new(channel, ChannelType::Chan),
+                            aux_channel: Channel::new(aux_channel, ChannelType::Aux),
+                            value: 0.33,
+                        },
+                        _ => return Err("Invalid send".to_string()),
+                    }
+                } else {
+                    return Err("Invalid send".to_string());
+                }
             } else {
                 return Err("Invalid command".to_string());
             }
         };
         Ok(motu_command)
+    }
+}
+
+impl Display for MotuCommand {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MotuCommand::EnableMonitoring => write!(f, "EnableMonitoring"),
+            MotuCommand::DisableMonitoring => write!(f, "DisableMonitoring"),
+            MotuCommand::PrintSettings => write!(f, "PrintSettings"),
+            MotuCommand::Volume { channel, volume } => {
+                write!(f, "Volume: {} {}", channel, volume)
+            }
+            MotuCommand::Send {
+                channel,
+                aux_channel,
+                value,
+            } => write!(f, "Send: {} {} {}", channel, aux_channel, value),
+            MotuCommand::Mute(channel) => write!(f, "Mute: {}", channel),
+            MotuCommand::Unmute(channel) => write!(f, "Unmute: {}", channel),
+            MotuCommand::Init => write!(f, "Init"),
+        }
     }
 }
 
