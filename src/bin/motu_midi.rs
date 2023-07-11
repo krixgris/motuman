@@ -114,26 +114,23 @@ impl MidiCommand {
     /// Returns `true` if the command should be throttled, `false` otherwise.
     fn do_throttle(&mut self) -> bool {
         let delta_time = self.delta_time();
-        let delta_value = 
-        
-        {
+        let delta_value = {
             if delta_time > 1000 {
                 1000.0
-            }
-            else {
+            } else {
                 self.delta_value()
             }
         };
-        
-        
-      
-        if (100 >= delta_time && delta_time > 40 && delta_value > 20.0)
-            || (150 >= delta_time && delta_time > 100 && delta_value > 4.0)
-            || (250 >= delta_time && delta_time > 150 && delta_value > 2.0)
+
+        dbg!(delta_time, delta_value);
+
+        if (100 >= delta_time && delta_time > 10 && delta_value > 5.0)
+            || (150 >= delta_time && delta_time > 100 && delta_value > 2.0)
+            || (250 >= delta_time && delta_time > 150 && delta_value > 0.0)
             || (delta_time > 250 && delta_value > 0.0)
-            || delta_value > 999.0
-            || self.midi_value == 0
-            || self.midi_value == 127
+            || delta_value > 30.0
+            || self.midi_value <= 2
+            || self.midi_value >= 125
         {
             // if true, set the prev_value and prev_time to the current values
             self.prev_midi_value = self.midi_value;
@@ -173,9 +170,8 @@ impl MidiCommand {
 }
 
 fn easing_circ(x: f32) -> f32 {
-    1.0 - (1.0 - x).sqrt()
+    1.0 - (1.0 - x * x).sqrt()
 }
-
 trait MidiMessage {
     fn is_midi(&self) -> bool {
         false
@@ -304,7 +300,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     midi_commands.extend(midi_commands_note_on);
     midi_commands.extend(midi_commands_note_off);
 
-    println!("MIDI Commands: {:?}", midi_commands);
+    // println!("MIDI Commands: {:?}", midi_commands);
 
     let ip: &str = &config.ip_address.address.to_string();
     let port = &config.ip_address.port.to_string();
@@ -360,13 +356,12 @@ fn run() -> Result<(), Box<dyn Error>> {
                         let _ = midi_command.set_midi_value(message[2]);
 
                         if midi_command.do_throttle() {
-                            println!("MIDI Command: {:?}", midi_command);
+                            // println!("MIDI Command: {:?}", midi_command);
                             motu_interface
                                 .run(vec![midi_command.motu_command])
                                 .expect("Error running MOTU command.");
-                        }
-                        else {
-                            println!("Throttling MIDI Command: {:?}", midi_command);
+                        // } else {
+                        //     println!("Throttling MIDI Command: {:?}", midi_command);
                         }
                         // println!("MIDI Command: {:?}", midi_command);
                     }
