@@ -95,7 +95,28 @@ impl MotuCommand {
         }
         Some(map)
     }
+
+    pub fn set_midi_value(self, midi_value: u8) -> MotuCommand {
+        match self {
+            MotuCommand::Volume { channel, volume: _ } => MotuCommand::Volume {
+                channel,
+                volume: midi_value as f32 / 127.0,
+            },
+            MotuCommand::Send {
+                channel,
+                aux_channel,
+                value: _,
+            } => MotuCommand::Send {
+                channel,
+                aux_channel,
+                value: midi_value as f32 / 127.0,
+            },
+            _ => self,
+        }
+    }
 }
+
+
 
 impl std::str::FromStr for MotuCommand {
     type Err = String;
