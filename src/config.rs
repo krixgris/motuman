@@ -10,7 +10,7 @@ use crate::args::IpEndpoint;
 pub struct MidiConfig {
     input: String,
     output: String,
-    midi_channel: u8,
+    pub midi_channel: u8,
 }
 
 #[serde_as]

@@ -3,7 +3,9 @@ use std::fmt::Display;
 use std::io::{stdin, stdout, Write};
 
 use midir::{Ignore, MidiInput};
-use motuman::motu::MotuCommand;
+use motuman::motu::{Motu, MotuCommand};
+
+use motuman::config;
 
 #[derive(Debug)]
 enum MidiType {
@@ -170,6 +172,21 @@ fn main() {
 }
 
 fn run() -> Result<(), Box<dyn Error>> {
+    let config_file_name = String::from("./motu_config.toml");
+    let config = config::Config::build(config_file_name, None).unwrap_or_else(|err| {
+        eprintln!("Problem parsing arguments: {err}");
+        std::process::exit(1);
+    });
+
+    let mut midi_commands: Vec<MidiCommand> = Vec::new();
+    let midi_channel = config.midi_config.unwrap();
+
+    // read the midi mapping from the config file
+    for (key, value) in config.midi_mapping_cc {
+        println!("{}: {}", key, value);
+        let midi_message: Vec<&str> = dbg!(value.split(",").collect());
+    }
+
     let mut input = String::new();
 
     let mut midi_in = MidiInput::new("midir reading input")?;
@@ -218,6 +235,8 @@ fn run() -> Result<(), Box<dyn Error>> {
                     message[2],
                     message.len()
                 );
+                let (channel, message) =
+                    (message.channel().unwrap() - 1, message.midi_type().unwrap());
             }
         },
         (),
