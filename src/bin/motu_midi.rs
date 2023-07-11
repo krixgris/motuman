@@ -122,7 +122,7 @@ impl MidiCommand {
             }
         };
 
-        dbg!(delta_time, delta_value);
+        // dbg!(delta_time, delta_value);
 
         if (100 >= delta_time && delta_time > 10 && delta_value > 5.0)
             || (150 >= delta_time && delta_time > 100 && delta_value > 2.0)
