@@ -59,7 +59,7 @@ impl MotuCommand {
             }
             MotuCommand::Volume { channel, volume } => {
                 map.insert(
-                    format!("/ch/{}/mix/level", channel.channel_number()),
+                    format!("/mix/chan/{}/matrix/fader", channel.channel_number()),
                     volume.to_string(),
                 );
             }
@@ -70,7 +70,7 @@ impl MotuCommand {
             } => {
                 map.insert(
                     format!(
-                        "/ch/{}/mix/aux/{}/level",
+                        "/mix/chan/{}/matrix/aux/{}/send",
                         channel.channel_number(),
                         aux_channel.channel_number()
                     ),
@@ -79,13 +79,13 @@ impl MotuCommand {
             }
             MotuCommand::Mute(channel) => {
                 map.insert(
-                    format!("/ch/{}/mix/on", channel.channel_number()),
+                    format!("/mix/chan/{}/matrix/mute", channel.channel_number()),
                     "0".to_string(),
                 );
             }
             MotuCommand::Unmute(channel) => {
                 map.insert(
-                    format!("/ch/{}/mix/on", channel.channel_number()),
+                    format!("/mix/chan/{}/matrix/mute", channel.channel_number()),
                     "1".to_string(),
                 );
             }
