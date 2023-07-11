@@ -229,9 +229,9 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     println!("MIDI Commands: {:?}", midi_commands);
 
-    // let ip: &str = &config.ip_address.address.to_string();
-    // let port = &config.ip_address.port.to_string();
-    // // Create a new MOTU object and run the specified commands
+    let ip: &str = &config.ip_address.address.to_string();
+    let port = &config.ip_address.port.to_string();
+    // Create a new MOTU object and run the specified commands
     // match motu::Motu::new(ip, port, &config) {
     //     Ok(motu) => {
     //         if let Err(e) = motu.run(motu_commands) {
@@ -244,6 +244,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     //         // process::exit(1);
     //     }
     // }
+    let motu_interface = motu::Motu::new(ip, port, &config).expect("Error creating Motu object, check motu_config.toml file.");
 
     let mut input = String::new();
 
@@ -284,6 +285,37 @@ fn run() -> Result<(), Box<dyn Error>> {
         "midir-read-input",
         move |stamp, message, _| {
             if message.is_midi() {
+                // match incoming message with the list of midi_commands, where the message field can match on the first 2 elements
+                let midi_command = midi_commands.iter().find(|midi_command| {
+                    midi_command.message[0] == message[0] && midi_command.message[1] == message[1]
+                });
+                match midi_command {
+                    Some(midi_command) => {
+                        println!("MIDI Command: {:?}", midi_command);
+                        motu_interface.run(vec![midi_command.motu_command]).expect("Error running MOTU command.");
+                    }
+                    None => {
+                        println!("MIDI Command not found: {:?}", message);
+                    }
+                }
+                // if let Some(midi_command) = midi_command {
+                //     println!("MIDI Command: {:?}", midi_command);
+                //     // let ip: &str = &config.ip_address.address.to_string();
+                //     // let port = &config.ip_address.port.to_string();
+                //     // // Create a new MOTU object and run the specified commands
+                //     // match motu::Motu::new(ip, port, &config) {
+                //     //     Ok(motu) => {
+                //     //         if let Err(e) = motu.run(motu_commands) {
+                //     //             eprintln!("Application error: {e}");
+                //     //             // process::exit(1);
+                //     //         }
+                //     //     }
+                //     //     Err(e) => {
+                //     //         eprintln!("Error creating Motu object: {e}");
+                //     //         // process::exit(1);
+                //     //     }
+                //     // }
+                // }
                 println!(
                     "{}: Channel: {}, Type: {}, Num: {}, Value: {}, (len = {})",
                     stamp,
