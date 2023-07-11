@@ -295,7 +295,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                         midi_command.motu_command.set_midi_value(message[2]);
                         println!("MIDI Command: {:?}", midi_command);
                         motu_interface
-                            .run(vec![midi_command.motu_command])
+                            .run(vec![midi_command.motu_command.set_midi_value(message[2])])
                             .expect("Error running MOTU command.");
                     }
                     None => {
