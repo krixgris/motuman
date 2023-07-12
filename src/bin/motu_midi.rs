@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fmt::Display;
 use std::io::{stdin, stdout, Write};
+use std::time::Duration;
 
 use midir::{Ignore, MidiInput};
 use motuman::motu::{self, MotuCommand};
@@ -434,9 +435,12 @@ fn run() -> Result<(), Box<dyn Error>> {
         "Connection open, reading input from '{}' (press enter to exit) ...",
         in_port_name
     );
+    loop {
+        std::thread::sleep(Duration::from_millis(1));
+    }
 
-    input.clear();
-    stdin().read_line(&mut input)?; // wait for next enter key press
+    // input.clear();
+    // stdin().read_line(&mut input)?; // wait for next enter key press
 
     println!("Closing connection");
     Ok(())
