@@ -35,8 +35,8 @@ ip_address = "192.168.1.167:9998"
 46 = "Mod_1_2"
 
 [midi_config]
-input = "MIDIIN2 (Arturia KeyStep 32)"
-output = "MIDIOUT2 (Arturia KeyStep 32)"
+input = "pisound:pisound MIDI PS-0M46XP2 20:0"
+output = "pisound:pisound MIDI PS-0M46XP2 20:0"
 midi_channel = 5
 
 # [midi_mapping_cc]
@@ -121,6 +121,7 @@ midi_channel = 5
 76 = "send(0,6)"
 77 = "send(10,6)"
 # 80 = "/mix/aux/4)"
+121 = "init"
 
 [midi_mapping_note_on]
 21 = "send(31,0)"
@@ -149,9 +150,9 @@ midi_channel = 5
 48 = "send(10,2)"
 # 61 = "no address"
 # 62 = "no address"
-# 100 = "no address"
-# 101 = "no address"
-# 102 = "no address"
+100 = "init"
+101 = "monitor(off)"
+102 = "monitor(on)"
 [midi_mapping_note_off]
 # 0 = "init"
 # 1 = "monitor(on)"

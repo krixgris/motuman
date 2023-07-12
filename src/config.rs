@@ -21,8 +21,8 @@ pub enum MidiCommand {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct MidiConfig {
-    input: String,
-    output: String,
+    pub input: String,
+    pub output: String,
     pub midi_channel: u8,
 }
 

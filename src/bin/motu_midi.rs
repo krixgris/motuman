@@ -257,6 +257,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         std::process::exit(1);
     });
 
+    let midi_input_device = config.midi_config.clone().unwrap().input;
+
     let mut midi_commands: Vec<MidiCommand> = Vec::new();
     let midi_channel = config.midi_config.clone().unwrap().midi_channel - 1;
 
@@ -314,29 +316,72 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // Get an input port (read from console if multiple are available)
     let in_ports = midi_in.ports();
-    let in_port = match in_ports.len() {
-        0 => return Err("no input port found".into()),
-        1 => {
+
+    // if midi_input_device exists in in_ports, then use that port, otherwise, use the match statement below
+    let in_port = match in_ports.iter().find(|port| {
+        midi_in
+            .port_name(port)
+            .unwrap()
+            .to_lowercase()
+            .contains(&midi_input_device.to_lowercase())
+    }) {
+        Some(port) => port,
+        None => {
+            
             println!(
-                "Choosing the only available input port: {}",
-                midi_in.port_name(&in_ports[0]).unwrap()
+                "No MIDI input device found with name: {}",
+                midi_input_device
             );
-            &in_ports[0]
-        }
-        _ => {
-            println!("\nAvailable input ports:");
-            for (i, p) in in_ports.iter().enumerate() {
-                println!("{}: {}", i, midi_in.port_name(p).unwrap());
+            // return Err("no input port found".into());
+            match in_ports.len() {
+                0 => return Err("no input port found".into()),
+                1 => {
+                    println!(
+                        "Choosing the only available input port: {}",
+                        midi_in.port_name(&in_ports[0]).unwrap()
+                    );
+                    &in_ports[0]
+                }
+                _ => {
+                    println!("\nAvailable input ports:");
+                    for (i, p) in in_ports.iter().enumerate() {
+                        println!("{}: {}", i, midi_in.port_name(p).unwrap());
+                    }
+                    print!("Please select input port: ");
+                    stdout().flush()?;
+                    let mut input = String::new();
+                    stdin().read_line(&mut input)?;
+                    in_ports
+                        .get(input.trim().parse::<usize>()?)
+                        .ok_or("invalid input port selected")?
+                }
             }
-            print!("Please select input port: ");
-            stdout().flush()?;
-            let mut input = String::new();
-            stdin().read_line(&mut input)?;
-            in_ports
-                .get(input.trim().parse::<usize>()?)
-                .ok_or("invalid input port selected")?
         }
     };
+
+    // let in_port = match in_ports.len() {
+    //     0 => return Err("no input port found".into()),
+    //     1 => {
+    //         println!(
+    //             "Choosing the only available input port: {}",
+    //             midi_in.port_name(&in_ports[0]).unwrap()
+    //         );
+    //         &in_ports[0]
+    //     }
+    //     _ => {
+    //         println!("\nAvailable input ports:");
+    //         for (i, p) in in_ports.iter().enumerate() {
+    //             println!("{}: {}", i, midi_in.port_name(p).unwrap());
+    //         }
+    //         print!("Please select input port: ");
+    //         stdout().flush()?;
+    //         let mut input = String::new();
+    //         stdin().read_line(&mut input)?;
+    //         in_ports
+    //             .get(input.trim().parse::<usize>()?)
+    //             .ok_or("invalid input port selected")?
+    //     }
+    // };
 
     println!("\nOpening connection");
     let in_port_name = midi_in.port_name(in_port)?;

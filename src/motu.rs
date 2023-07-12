@@ -1,6 +1,10 @@
 use crate::config::Config;
 use crate::motu::channel::Channel;
 use crate::motu::channel::ChannelType;
+use reqwest::{
+    blocking::{Client, Response},
+    header,
+};
 use rosc::OscMessage;
 use rosc::OscPacket;
 use rosc::OscType;
@@ -59,7 +63,7 @@ impl MotuCommand {
             }
             MotuCommand::Volume { channel, volume } => {
                 map.insert(
-                    format!("/mix/chan/{}/matrix/fader", channel.channel_number()),
+                    format!("/mix/{}/{}/matrix/fader", channel.channel_type(), channel.channel_number()),
                     volume.to_string(),
                 );
             }
@@ -70,7 +74,8 @@ impl MotuCommand {
             } => {
                 map.insert(
                     format!(
-                        "/mix/chan/{}/matrix/aux/{}/send",
+                        "/mix/{}/{}/matrix/aux/{}/send",
+                        channel.channel_type(),
                         channel.channel_number(),
                         aux_channel.channel_number()
                     ),
@@ -79,14 +84,14 @@ impl MotuCommand {
             }
             MotuCommand::Mute(channel) => {
                 map.insert(
-                    format!("/mix/chan/{}/matrix/mute", channel.channel_number()),
-                    "0".to_string(),
+                    format!("/mix/{}/{}/matrix/mute", channel.channel_type(), channel.channel_number()),
+                    "1".to_string(),
                 );
             }
             MotuCommand::Unmute(channel) => {
                 map.insert(
-                    format!("/mix/chan/{}/matrix/mute", channel.channel_number()),
-                    "1".to_string(),
+                    format!("/mix/{}/{}/matrix/mute", channel.channel_type(), channel.channel_number()),
+                    "0".to_string(),
                 );
             }
             MotuCommand::Init => {
@@ -115,8 +120,6 @@ impl MotuCommand {
     //     }
     // }
 }
-
-
 
 impl std::str::FromStr for MotuCommand {
     type Err = String;
@@ -220,13 +223,66 @@ impl Motu {
     }
 
     pub fn run(&self, commands: Vec<MotuCommand>) -> Result<(), Box<dyn Error>> {
-        commands
+        let commands: Vec<MotuCommand> = commands
             .into_iter()
             .flat_map(|command| self.process_commands(command))
             .filter(|command| command.hash_map().is_some())
-            .for_each(|command| {
-                self.send(command).unwrap();
-            });
+            .collect();
+        // .for_each(|command| {
+        //     self.send(command).unwrap();
+        // });
+        if commands.len() >= 10 {
+            let client = Client::new();
+
+            // let http_commands: Vec<MotuCommand> = commands
+            //     .into_iter()
+            //     .flat_map(|command| self.process_commands(command))
+            //     .filter(|command| command.hash_map().is_some())
+            //     .collect();
+
+            let payload = {
+                let long_string = commands
+                    .iter()
+                    .filter_map(|command| command.hash_map())
+                    .map(|hash_map| {
+                        hash_map
+                            .iter()
+                            .map(|(k, v)| format!("\"{}\": {}", k.replace("/mix/", "mix/"), v))
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    })
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                format!("{{{}}}", long_string)
+            };
+
+            // let payload = "{\"mix/chan/31/matrix/fader\": \"0.51410246\", \"mix/chan/2/matrix/fader\": \"0.51410246\" }";
+
+            let mut headers = header::HeaderMap::new();
+            headers.insert(
+                "Content-Type",
+                "application/x-www-form-urlencoded".parse().unwrap(),
+            );
+            println!("json data: {}", payload);
+            // Send the POST request with JSON payload
+            let response: Response = client
+                .post("http://192.168.1.167/datastore")
+                .headers(headers)
+                .body(format!("json={}", payload))
+                .send()?;
+            // Check if the request was successful
+            if !response.status().is_success() {
+                println!("Request failed with status: {}", response.status());
+            }
+        } else {
+            commands
+                .into_iter()
+                // .flat_map(|command| self.process_commands(command))
+                // .filter(|command| command.hash_map().is_some())
+                .for_each(|command| {
+                    self.send(command).unwrap();
+                });
+        }
         Ok(())
     }
 
