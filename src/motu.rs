@@ -45,7 +45,7 @@ pub enum MotuCommand {
     Init,
 }
 impl MotuCommand {
-    fn hash_map(&self) -> Option<HashMap<String, String>> {
+    pub fn hash_map(&self) -> Option<HashMap<String, String>> {
         let mut map = HashMap::new();
         match self {
             MotuCommand::EnableMonitoring => {
