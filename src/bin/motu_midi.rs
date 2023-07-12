@@ -328,7 +328,6 @@ fn run() -> Result<(), Box<dyn Error>> {
     }) {
         Some(port) => port,
         None => {
-            
             println!(
                 "No MIDI input device found with name: {}",
                 midi_input_device
@@ -406,8 +405,8 @@ fn run() -> Result<(), Box<dyn Error>> {
                             motu_interface
                                 .run(vec![midi_command.motu_command])
                                 .expect("Error running MOTU command.");
-                        // } else {
-                        //     println!("Throttling MIDI Command: {:?}", midi_command);
+                            // } else {
+                            //     println!("Throttling MIDI Command: {:?}", midi_command);
                         }
                         // println!("MIDI Command: {:?}", midi_command);
                     }
@@ -432,15 +431,19 @@ fn run() -> Result<(), Box<dyn Error>> {
     )?;
 
     println!(
-        "Connection open, reading input from '{}' (press enter to exit) ...",
+        "Connection open, reading input from '{}' (type 'Q' and hit enter to exit) ...",
         in_port_name
     );
+    // loop {
+    //     std::thread::sleep(Duration::from_millis(1));
+    // }
     loop {
-        std::thread::sleep(Duration::from_millis(1));
+        input.clear();
+        stdin().read_line(&mut input)?; // wait for next enter key press
+        if input.contains('Q') || input.contains('q') {
+            break;
+        }
     }
-
-    // input.clear();
-    // stdin().read_line(&mut input)?; // wait for next enter key press
 
     println!("Closing connection");
     Ok(())
