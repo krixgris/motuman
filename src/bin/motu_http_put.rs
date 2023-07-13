@@ -1,10 +1,9 @@
 use motuman::motu::channel::Channel;
-use motuman::motu::{channel::ChannelType, Motu, MotuCommand};
+use motuman::motu::{channel::ChannelType, MotuCommand};
 use reqwest::{
     blocking::{Client, Response},
     header,
 };
-use serde_json::json;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a client

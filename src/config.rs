@@ -12,8 +12,8 @@ use crate::args::IpEndpoint;
 pub enum MidiCommand {
     #[serde(rename = "vol")]
     Vol(usize),
-    // #[serde(rename = "send")]
-    send(usize, usize),
+    #[serde(rename = "send")]
+    Send(usize, usize),
     Init,
     MonitorOn,
     MonitorOff
