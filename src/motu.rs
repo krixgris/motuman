@@ -14,6 +14,7 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 
 pub mod channel;
+pub mod motucommand;
 
 mod osc;
 
