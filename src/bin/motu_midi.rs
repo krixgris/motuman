@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::fmt::Display;
 use std::io::{stdin, stdout, Write};
-use std::time::Duration;
 
 use midir::{Ignore, MidiInput};
 use motuman::motu::{self, MotuCommand};

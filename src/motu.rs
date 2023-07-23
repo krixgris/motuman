@@ -222,7 +222,7 @@ impl Motu {
             monitor_groups: config.monitor_groups.clone(),
         })
     }
-
+    // Must refactor.. this is ugly
     pub fn run(&self, commands: Vec<MotuCommand>) -> Result<(), Box<dyn Error>> {
         let commands: Vec<MotuCommand> = commands
             .into_iter()
