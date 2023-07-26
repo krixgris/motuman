@@ -149,7 +149,7 @@ impl MidiCommand {
             .map_err(|e| e.to_string())?
             .as_millis() as u64;
 
-        self.motu_command = match self.motu_command {
+        let mut motu_command = match self.motu_command {
             MotuCommand::Volume { channel, volume: _ } => MotuCommand::Volume {
                 channel,
                 volume: easing_circ(midi_value as f32 / 127.0),
@@ -165,8 +165,13 @@ impl MidiCommand {
             },
             _ => self.motu_command,
         };
+        std::mem::swap(&mut motu_command, &mut self.motu_command);
         Ok(())
     }
+}
+
+trait EasingAlgorithm {
+    fn easing(x: f32) -> f32;
 }
 
 fn easing_circ(x: f32) -> f32 {
