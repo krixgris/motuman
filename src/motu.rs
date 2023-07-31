@@ -102,6 +102,21 @@ impl MotuCommand {
         Some(map)
     }
 
+    pub fn set_value(&mut self, new_value: f32) {
+        match self {
+            MotuCommand::Volume { channel:_, volume } =>
+                *volume =  new_value,
+
+            MotuCommand::Send {
+                channel: _,
+                aux_channel:_,
+                value,
+            } =>
+                *value = new_value,
+            _ => (),
+        }
+    }
+
     // pub fn set_midi_value(self, midi_value: u8) -> MotuCommand {
     //     match self {
     //         MotuCommand::Volume { channel, volume: _ } => MotuCommand::Volume {
