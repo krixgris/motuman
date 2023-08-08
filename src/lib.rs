@@ -14,8 +14,8 @@ mod tests {
 
     fn get_mock_config() -> Config {
         let mut mock_config = Config {
-            network:NetworkConfig {
-                ip_address: IpEndpoint::from("127.0.0.1:8000")
+            network: NetworkConfig {
+                ip_address: IpEndpoint::from("127.0.0.1:8000"),
             },
             ip_address: IpEndpoint::from("127.0.0.1:8000"),
             aux_channels: HashMap::new(),

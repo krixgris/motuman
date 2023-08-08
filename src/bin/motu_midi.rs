@@ -148,24 +148,25 @@ impl MidiCommand {
             .duration_since(std::time::UNIX_EPOCH)
             .map_err(|e| e.to_string())?
             .as_millis() as u64;
-        self.motu_command.set_value(easing_circ(midi_value as f32 / 127.0));
-//    let mut motu_command = match self.motu_command {
-//            MotuCommand::Volume { channel, volume: _ } => MotuCommand::Volume {
-//                channel,
-//                volume: easing_circ(midi_value as f32 / 127.0),
-//            },
-//            MotuCommand::Send {
-//                channel,
-//                aux_channel,
-//                value: _,
-//            } => MotuCommand::Send {
-//                channel,
-//                aux_channel,
-//                value: easing_circ(midi_value as f32 / 127.0),
-//            },
-//            _ => self.motu_command,
-//        };
-//        std::mem::swap(&mut motu_command, &mut self.motu_command);
+        self.motu_command
+            .set_value(easing_circ(midi_value as f32 / 127.0));
+        //    let mut motu_command = match self.motu_command {
+        //            MotuCommand::Volume { channel, volume: _ } => MotuCommand::Volume {
+        //                channel,
+        //                volume: easing_circ(midi_value as f32 / 127.0),
+        //            },
+        //            MotuCommand::Send {
+        //                channel,
+        //                aux_channel,
+        //                value: _,
+        //            } => MotuCommand::Send {
+        //                channel,
+        //                aux_channel,
+        //                value: easing_circ(midi_value as f32 / 127.0),
+        //            },
+        //            _ => self.motu_command,
+        //        };
+        //        std::mem::swap(&mut motu_command, &mut self.motu_command);
         Ok(())
     }
 }
@@ -316,11 +317,16 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     let mut input = String::new();
 
+    println!("Initializing midi...");
     let mut midi_in = MidiInput::new("midir reading input")?;
     midi_in.ignore(Ignore::None);
+    println!("Midi initialized.");
 
     // Get an input port (read from console if multiple are available)
     let in_ports = midi_in.ports();
+    for port in &in_ports {
+        println!("Found input port: {}", midi_in.port_name(port).unwrap());
+    }
 
     // if midi_input_device exists in in_ports, then use that port, otherwise, use the match statement below
     let in_port = match in_ports.iter().find(|port| {
@@ -393,7 +399,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let _conn_in = midi_in.connect(
         in_port,
         "midir-read-input",
-        move |stamp, message, _| {
+        move |_stamp, message, _| {
             if message.is_midi() {
                 // match incoming message with the list of midi_commands, where the message field can match on the first 2 elements
                 let midi_command = midi_commands.iter_mut().find(|midi_command| {

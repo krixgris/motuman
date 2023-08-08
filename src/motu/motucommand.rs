@@ -1,8 +1,8 @@
 // motucommand from motu.rs goes here
 // Path: src/motu/motu.rs
 
-use std::{collections::HashMap, fmt::Display};
 use super::channel::{Channel, ChannelType};
+use std::{collections::HashMap, fmt::Display};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum MotuCommand {
@@ -88,18 +88,19 @@ impl MotuCommand {
     }
     pub fn set_value(&mut self, new_value: f32) {
         match self {
-            MotuCommand::Volume { channel:_, volume } =>
-                *volume =  new_value,
+            MotuCommand::Volume { channel:  _, volume } => *volume = new_value,
 
             MotuCommand::Send {
                 channel: _,
-                aux_channel:_,
-                value,
-            } =>
-                *value = new_value,
-            _ => (),
+                aux_channel: _,
+                value, 
+            } => *value = new_value,
+            _ =>
+                (),
         }
     }
+
+
 
     // pub fn set_midi_value(self, midi_value: u8) -> MotuCommand {
     //     match self {
