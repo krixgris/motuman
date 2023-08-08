@@ -279,7 +279,7 @@ impl Motu {
                 "Content-Type",
                 "application/x-www-form-urlencoded".parse().unwrap(),
             );
-            println!("json data: {}", payload);
+            // println!("json data: {}", payload);
             // Send the POST request with JSON payload
             let response: Response = client
                 .post("http://192.168.1.167/datastore")
