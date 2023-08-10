@@ -10,8 +10,6 @@ use rosc::OscPacket;
 use rosc::OscType;
 use std::collections::HashMap;
 use std::error::Error;
-use std::fmt::Display;
-use std::fmt::Formatter;
 
 pub use self::motucommand::MotuCommand;
 

@@ -2,6 +2,7 @@ pub mod args;
 pub mod args_test;
 pub mod config;
 pub mod motu;
+pub mod midi;
 
 #[cfg(test)]
 mod tests {

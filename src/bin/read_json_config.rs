@@ -4,7 +4,7 @@
 
 // generate this as a main function in this binary crate
 // use serde_json to deserialize the json file into a struct
-use std::{collections::HashMap, hash::Hash};
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
 

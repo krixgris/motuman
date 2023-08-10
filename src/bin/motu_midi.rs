@@ -1,183 +1,12 @@
 use std::error::Error;
-use std::fmt::Display;
 use std::io::{stdin, stdout, Write};
 
 use midir::{Ignore, MidiInput};
-use motuman::motu::{self, MotuCommand};
+use motuman::motu::{self};
 
 use motuman::config;
+use motuman::midi::{midicommand::MidiCommand, miditype::MidiType};
 
-#[derive(Debug)]
-enum MidiType {
-    CC,
-    NoteOn,
-    NoteOff,
-    Undefined,
-}
-
-impl Display for MidiType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            MidiType::CC => write!(f, "CC"),
-            MidiType::NoteOn => write!(f, "NoteOn"),
-            MidiType::NoteOff => write!(f, "NoteOff"),
-            MidiType::Undefined => write!(f, "UNDEFINED"),
-        }
-    }
-}
-
-impl From<&[u8]> for MidiType {
-    fn from(message: &[u8]) -> Self {
-        if message.len() == 3 && message[0] >> 4 == 0xB {
-            MidiType::CC
-        } else if message.len() == 3 && message[0] >> 4 == 0x9 {
-            MidiType::NoteOn
-        } else if message.len() == 3 && message[0] >> 4 == 0x8 {
-            MidiType::NoteOff
-        } else {
-            MidiType::Undefined
-        }
-    }
-}
-
-impl From<&u8> for MidiType {
-    fn from(midi_type: &u8) -> Self {
-        match midi_type >> 4 {
-            0xB => MidiType::CC,
-            0x9 => MidiType::NoteOn,
-            0x8 => MidiType::NoteOff,
-            _ => MidiType::Undefined,
-        }
-    }
-}
-
-impl From<MidiType> for u8 {
-    fn from(midi_type: MidiType) -> Self {
-        match midi_type {
-            MidiType::CC => 0xB,
-            MidiType::NoteOn => 0x9,
-            MidiType::NoteOff => 0x8,
-            MidiType::Undefined => 0xFF,
-        }
-    }
-}
-
-impl From<MidiType> for &u8 {
-    fn from(midi_type: MidiType) -> Self {
-        match midi_type {
-            MidiType::CC => &0xB,
-            MidiType::NoteOn => &0x9,
-            MidiType::NoteOff => &0x8,
-            MidiType::Undefined => &0xFF,
-        }
-    }
-}
-
-#[derive(Debug)]
-struct MidiCommand {
-    // message field should be an array of 3 u8
-    message: [u8; 3],
-    midi_value: u8,
-    prev_midi_value: u8,
-    motu_command: MotuCommand,
-    timestamp: u64,
-    prev_timestamp: u64,
-}
-impl MidiCommand {
-    fn new(message: &[u8], motu_command: MotuCommand) -> Option<Self> {
-        if message.len() == 3 {
-            let mut message_array: [u8; 3] = [0; 3];
-            message_array.copy_from_slice(message);
-            Some(Self {
-                message: message_array,
-                motu_command,
-                timestamp: 10000,
-                midi_value: 0,
-                prev_midi_value: 127,
-                prev_timestamp: 0,
-            })
-        } else {
-            None
-        }
-    }
-
-    fn delta_value(&self) -> f32 {
-        // abs delta value
-        (self.midi_value as f32 - self.prev_midi_value as f32).abs()
-    }
-
-    fn delta_time(&self) -> u64 {
-        self.timestamp - self.prev_timestamp
-    }
-
-    /// Determines whether the MIDI command should be throttled based on the delta time and delta value.
-    /// Returns `true` if the command should be throttled, `false` otherwise.
-    fn do_throttle(&mut self) -> bool {
-        let delta_time = self.delta_time();
-        let delta_value = {
-            if delta_time > 1000 {
-                1000.0
-            } else {
-                self.delta_value()
-            }
-        };
-
-        // dbg!(delta_time, delta_value);
-
-        if (100 >= delta_time && delta_time > 10 && delta_value > 5.0)
-            || (150 >= delta_time && delta_time > 100 && delta_value > 2.0)
-            || (250 >= delta_time && delta_time > 150 && delta_value > 0.0)
-            || (delta_time > 250 && delta_value > 0.0)
-            || delta_value > 30.0
-            || self.midi_value <= 2
-            || self.midi_value >= 125
-        {
-            // if true, set the prev_value and prev_time to the current values
-            self.prev_midi_value = self.midi_value;
-            self.prev_timestamp = self.timestamp;
-            true
-        } else {
-            false
-        }
-    }
-
-    pub fn set_midi_value(&mut self, midi_value: u8) -> Result<(), String> {
-        self.midi_value = midi_value;
-        self.prev_timestamp = self.timestamp;
-        self.timestamp = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map_err(|e| e.to_string())?
-            .as_millis() as u64;
-        self.motu_command
-            .set_value(easing_circ(midi_value as f32 / 127.0));
-        //    let mut motu_command = match self.motu_command {
-        //            MotuCommand::Volume { channel, volume: _ } => MotuCommand::Volume {
-        //                channel,
-        //                volume: easing_circ(midi_value as f32 / 127.0),
-        //            },
-        //            MotuCommand::Send {
-        //                channel,
-        //                aux_channel,
-        //                value: _,
-        //            } => MotuCommand::Send {
-        //                channel,
-        //                aux_channel,
-        //                value: easing_circ(midi_value as f32 / 127.0),
-        //            },
-        //            _ => self.motu_command,
-        //        };
-        //        std::mem::swap(&mut motu_command, &mut self.motu_command);
-        Ok(())
-    }
-}
-
-trait EasingAlgorithm {
-    fn easing(x: f32) -> f32;
-}
-
-fn easing_circ(x: f32) -> f32 {
-    1.0 - (1.0 - x * x).sqrt()
-}
 trait MidiMessage {
     fn is_midi(&self) -> bool {
         false
@@ -212,42 +41,6 @@ impl MidiMessage for &[u8] {
         }
     }
 }
-
-/*
-fn main() {
-    let mut args = std::env::args().skip(1);
-    let midi_in = args.next().expect("Usage: motu_midid <midi-in>");
-    let midi_in_ports = midir::MidiInput::new("motu_midid").unwrap().ports();
-    if midi_in == "--help" {
-        println!("Available MIDI inputs:");
-        for (i, port) in midi_in_ports.iter().enumerate() {
-            println!("{}: {}", i, port.into());
-        }
-        return;
-    }
-    let midi_in_port = midi_in_ports[midi_in.parse::<usize>().unwrap()];
-    let mut midi_in_conn = MidiInput::new("motumidid").unwrap().connect(
-        &midi_in_port,
-        "motumidid input",
-        move |_, message, _| {
-            if let MidiMessage::ControlChange(_, 66, 66) = message {
-                println!("Aborting...");
-                std::process::exit(0);
-            }
-            println!("Received MIDI message: {:?}", message);
-        },
-        (),
-    ).unwrap();
-    println!("Listening for MIDI input on {}...", midi_in_port);
-    loop {
-        thread::sleep(Duration::from_millis(10));
-        if let Ok(true) = stdin().lock().bytes().next().map(|b| b == b'q' || b == b'Q') {
-            println!("Quitting...");
-            std::process::exit(0);
-        }
-    }
-}
-*/
 
 fn main() {
     match run() {
@@ -342,7 +135,6 @@ fn run() -> Result<(), Box<dyn Error>> {
                 "No MIDI input device found with name: {}",
                 midi_input_device
             );
-            // return Err("no input port found".into());
             match in_ports.len() {
                 0 => return Err("no input port found".into()),
                 1 => {
@@ -369,30 +161,6 @@ fn run() -> Result<(), Box<dyn Error>> {
         }
     };
 
-    // let in_port = match in_ports.len() {
-    //     0 => return Err("no input port found".into()),
-    //     1 => {
-    //         println!(
-    //             "Choosing the only available input port: {}",
-    //             midi_in.port_name(&in_ports[0]).unwrap()
-    //         );
-    //         &in_ports[0]
-    //     }
-    //     _ => {
-    //         println!("\nAvailable input ports:");
-    //         for (i, p) in in_ports.iter().enumerate() {
-    //             println!("{}: {}", i, midi_in.port_name(p).unwrap());
-    //         }
-    //         print!("Please select input port: ");
-    //         stdout().flush()?;
-    //         let mut input = String::new();
-    //         stdin().read_line(&mut input)?;
-    //         in_ports
-    //             .get(input.trim().parse::<usize>()?)
-    //             .ok_or("invalid input port selected")?
-    //     }
-    // };
-
     println!("\nOpening connection");
     let in_port_name = midi_in.port_name(in_port)?;
 
@@ -411,14 +179,10 @@ fn run() -> Result<(), Box<dyn Error>> {
                         let _ = midi_command.set_midi_value(message[2]);
 
                         if midi_command.do_throttle() {
-                            // println!("MIDI Command: {:?}", midi_command);
                             motu_interface
                                 .run(vec![midi_command.motu_command])
                                 .expect("Error running MOTU command.");
-                            // } else {
-                            //     println!("Throttling MIDI Command: {:?}", midi_command);
                         }
-                        // println!("MIDI Command: {:?}", midi_command);
                     }
                     None => {
                         println!("MIDI Command not found: {:?}", message);
@@ -444,9 +208,6 @@ fn run() -> Result<(), Box<dyn Error>> {
         "Connection open, reading input from '{}' (type 'Q' and hit enter to exit) ...",
         in_port_name
     );
-    // loop {
-    //     std::thread::sleep(Duration::from_millis(1));
-    // }
     loop {
         input.clear();
         stdin().read_line(&mut input)?; // wait for next enter key press
