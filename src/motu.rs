@@ -12,6 +12,7 @@ use std::collections::HashMap;
 use std::error::Error;
 
 pub use self::motucommand::MotuCommand;
+use self::motucommand::MotuVec;
 
 pub mod channel;
 pub mod motucommand;
@@ -50,7 +51,8 @@ impl Motu {
         })
     }
     // Must refactor.. this is ugly
-    pub fn run(&self, commands: Vec<MotuCommand>) -> Result<(), Box<dyn Error>> {
+    pub fn run(&self, commands: impl MotuVec) -> Result<(), Box<dyn Error>> {
+        let commands = commands.to_vec();
         let commands: Vec<MotuCommand> = commands
             .into_iter()
             .flat_map(|command| self.process_commands(command))

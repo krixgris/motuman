@@ -173,28 +173,13 @@ fn run() -> Result<(), Box<dyn Error>> {
                 let midi_command = midi_commands.iter_mut().find(|midi_command| {
                     midi_command.message[0] == message[0] && midi_command.message[1] == message[1]
                 });
-                // match midi_command {
-                //     Some(midi_command) => {
-                //         // will always be Ok()
-                //         let _ = midi_command.set_midi_value(message[2]);
-
-                //         if midi_command.do_throttle() {
-                //             motu_interface
-                //                 .run(vec![midi_command.motu_command])
-                //                 .expect("error running motu command.");
-                //         }
-                //     }
-                //     none => {
-                //         println!("midi command not found: {:?}", message);
-                //     }
-                // }
                 if let Some(midi_command) = midi_command {
                     // will always be Ok()
                     let _ = midi_command.set_midi_value(message[2]);
 
                     if midi_command.do_throttle() {
                         motu_interface
-                            .run(vec![midi_command.motu_command])
+                            .run(midi_command.motu_command)
                             .expect("error running motu command.");
                     }
                 }
