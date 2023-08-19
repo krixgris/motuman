@@ -40,7 +40,7 @@ fn main() {
     // Create a new MOTU object and run the specified commands
     match motu::Motu::new(ip, port, &config) {
         Ok(motu) => {
-            if let Err(e) = motu.run(motu_commands) {
+            if let Err(e) = motu.run(&motu_commands) {
                 eprintln!("Application error: {e}");
                 process::exit(1);
             }

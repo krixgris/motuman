@@ -179,7 +179,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
                     if midi_command.do_throttle() {
                         motu_interface
-                            .run(midi_command.motu_command)
+                            .run(&midi_command.motu_commands())
                             .expect("error running motu command.");
                     }
                 }

@@ -204,20 +204,3 @@ impl Display for MotuCommand {
         }
     }
 }
-
-pub trait MotuVec {
-    /// Converts a command to a vector of MotuCommands
-    /// This is useful for commands that need to be split into multiple commands
-    fn to_vec(&self) -> Vec<MotuCommand>;
-}
-
-impl MotuVec for MotuCommand {
-    fn to_vec(&self) -> Vec<MotuCommand> {
-        vec![self.clone()]
-    }
-}
-impl MotuVec for Vec<MotuCommand> {
-    fn to_vec(&self) -> Vec<MotuCommand> {
-        self.clone()
-    }
-}

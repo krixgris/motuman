@@ -7,6 +7,7 @@ pub struct MidiCommand {
     midi_value: u8,
     prev_midi_value: u8,
     pub motu_command: MotuCommand,
+    motu_commands: Vec<MotuCommand>,
     timestamp: u64,
     prev_timestamp: u64,
 }
@@ -18,6 +19,7 @@ impl MidiCommand {
             Some(Self {
                 message: message_array,
                 motu_command,
+                motu_commands: vec![motu_command],
                 timestamp: 10000,
                 midi_value: 0,
                 prev_midi_value: 127,
@@ -76,6 +78,10 @@ impl MidiCommand {
         self.motu_command
             .set_value(easing_circ(midi_value as f32 / 127.0));
         Ok(())
+    }
+
+    pub fn motu_commands(&self) -> Vec<MotuCommand> {
+        self.motu_commands.clone()
     }
 }
 

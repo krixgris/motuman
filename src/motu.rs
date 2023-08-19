@@ -12,7 +12,6 @@ use std::collections::HashMap;
 use std::error::Error;
 
 pub use self::motucommand::MotuCommand;
-use self::motucommand::MotuVec;
 
 pub mod channel;
 pub mod motucommand;
@@ -32,8 +31,8 @@ impl OscSender for OscMessage {
     }
 }
 
-
 pub struct Motu {
+    http_client_url: String,
     client: osc::OscClient,
     aux_channels: HashMap<usize, String>,
     channels: HashMap<usize, String>,
@@ -43,32 +42,24 @@ pub struct Motu {
 impl Motu {
     pub fn new(ip: &str, port: &str, config: &Config) -> Result<Motu, Box<dyn Error>> {
         let client = osc::OscClient::new(&format!("{}:{}", ip, port))?;
+        let http_client_url = format!("http://{}/datastore", ip);
         Ok(Motu {
+            http_client_url,
             client,
             aux_channels: config.aux_channels.clone(),
             channels: config.channels.clone(),
             monitor_groups: config.monitor_groups.clone(),
         })
     }
-    // Must refactor.. this is ugly
-    pub fn run(&self, commands: impl MotuVec) -> Result<(), Box<dyn Error>> {
-        let commands = commands.to_vec();
+    // runs the vector of commands
+    pub fn run(&self, commands: &Vec<MotuCommand>) -> Result<(), Box<dyn Error>> {
         let commands: Vec<MotuCommand> = commands
-            .into_iter()
+            .iter()
             .flat_map(|command| self.process_commands(command))
             .filter(|command| command.hash_map().is_some())
             .collect();
-        // .for_each(|command| {
-        //     self.send(command).unwrap();
-        // });
         if commands.len() >= 10 {
             let client = Client::new();
-
-            // let http_commands: Vec<MotuCommand> = commands
-            //     .into_iter()
-            //     .flat_map(|command| self.process_commands(command))
-            //     .filter(|command| command.hash_map().is_some())
-            //     .collect();
 
             let payload = {
                 let long_string = commands
@@ -96,7 +87,7 @@ impl Motu {
             // println!("json data: {}", payload);
             // Send the POST request with JSON payload
             let response: Response = client
-                .post("http://192.168.1.167/datastore")
+                .post(&self.http_client_url)
                 .headers(headers)
                 .body(format!("json={}", payload))
                 .send()?;
@@ -107,16 +98,14 @@ impl Motu {
         } else {
             commands
                 .into_iter()
-                // .flat_map(|command| self.process_commands(command))
-                // .filter(|command| command.hash_map().is_some())
-                .for_each(|command| {
+               .for_each(|command| {
                     self.send(command).unwrap();
                 });
         }
         Ok(())
     }
 
-    fn process_commands(&self, command: MotuCommand) -> Vec<MotuCommand> {
+    fn process_commands(&self, command: &MotuCommand) -> Vec<MotuCommand> {
         let mut commands: Vec<MotuCommand> = vec![];
         match command {
             MotuCommand::PrintSettings => {
@@ -164,7 +153,7 @@ impl Motu {
                 });
             }
             _ => {
-                commands.push(command);
+                commands.push(command.clone());
             }
         }
         commands

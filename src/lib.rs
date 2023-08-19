@@ -40,7 +40,7 @@ mod tests {
         let mock_config = get_mock_config();
         let motu = Motu::new("127.0.0.1", "8000", &mock_config)?;
         let commands: Vec<MotuCommand> = vec![MotuCommand::EnableMonitoring];
-        motu.run(commands)?;
+        motu.run(&commands)?;
         // Add assertions here to check that monitoring is enabled
         Ok(())
     }
@@ -50,7 +50,7 @@ mod tests {
         let mock_config = get_mock_config();
         let motu = Motu::new("127.0.0.1", "8000", &mock_config)?;
         let commands: Vec<MotuCommand> = vec![MotuCommand::DisableMonitoring];
-        motu.run(commands)?;
+        motu.run(&commands)?;
         // Add assertions here to check that monitoring is disabled
         Ok(())
     }
@@ -60,7 +60,7 @@ mod tests {
         let mock_config = get_mock_config();
         let motu = Motu::new("127.0.0.1", "8000", &mock_config)?;
         let commands: Vec<MotuCommand> = vec![MotuCommand::PrintSettings];
-        motu.run(commands)?;
+        motu.run(&commands)?;
         // Add assertions here to check that settings are printed
         Ok(())
     }
