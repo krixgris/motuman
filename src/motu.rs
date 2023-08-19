@@ -77,14 +77,11 @@ impl Motu {
                 format!("{{{}}}", long_string)
             };
 
-            // let payload = "{\"mix/chan/31/matrix/fader\": \"0.51410246\", \"mix/chan/2/matrix/fader\": \"0.51410246\" }";
-
             let mut headers = header::HeaderMap::new();
             headers.insert(
                 "Content-Type",
                 "application/x-www-form-urlencoded".parse().unwrap(),
             );
-            // println!("json data: {}", payload);
             // Send the POST request with JSON payload
             let response: Response = client
                 .post(&self.http_client_url)
@@ -110,9 +107,6 @@ impl Motu {
         match command {
             MotuCommand::PrintSettings => {
                 let _ = self.print_settings();
-                // println!("aux_channels: {:?}", self.aux_channels);
-                // println!("channels: {:?}", self.channels);
-                // println!("monitor_groups: {:?}", self.monitor_groups);
             }
             MotuCommand::EnableMonitoring => {
                 for group_index in self.monitor_groups.keys() {
@@ -187,7 +181,6 @@ impl Motu {
             None => return Err("No message found".into()),
         };
         message.iter().for_each(|(key, value)| {
-            // println!("{}: {}", key, value);
             let message = OscMessage::new(key, value.parse::<f32>().unwrap_or_default());
             let packet = OscPacket::Message(message);
             let _ = self.client.send(packet);
