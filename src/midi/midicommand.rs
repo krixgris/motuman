@@ -81,7 +81,7 @@ impl MidiCommand {
     }
 
     pub fn motu_commands(&self) -> Vec<MotuCommand> {
-        self.motu_commands.clone()
+        vec![self.motu_command.clone()]
     }
 }
 
