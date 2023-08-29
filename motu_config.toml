@@ -35,8 +35,8 @@ ip_address = "127.0.0.1:8000"
 46 = "Mod_1_2"
 
 [midi_config]
-input = "pisound:pisound MIDI PS-0M46XP2 20:0"
-output = "pisound:pisound MIDI PS-0M46XP2 20:0"
+input = "Faderfox MX12"
+output = "Faderfox MX12"
 midi_channel = 5
 
 # [midi_mapping_cc]

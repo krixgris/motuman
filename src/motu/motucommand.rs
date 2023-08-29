@@ -86,6 +86,73 @@ impl MotuCommand {
         }
         Some(map)
     }
+    
+    pub fn endpoint_command(&self) -> Option<(String, String)> {
+        let endpoint_value: Option<(String, String)> =
+        match self {
+            MotuCommand::EnableMonitoring => {
+                return None;
+            }
+            MotuCommand::DisableMonitoring => {
+                return None;
+            }
+            MotuCommand::PrintSettings => {
+                return None;
+            }
+            MotuCommand::Volume { channel, volume } => {
+                Some(
+                    (
+                    format!(
+                        "/mix/{}/{}/matrix/fader",
+                        channel.channel_type(),
+                        channel.channel_number()
+                    ),
+                    volume.to_string()
+                        )
+                        )
+            }
+            MotuCommand::Send {
+                channel,
+                aux_channel,
+                value,
+            } => {
+                Some((
+                    format!(
+                        "/mix/{}/{}/matrix/aux/{}/send",
+                        channel.channel_type(),
+                        channel.channel_number(),
+                        aux_channel.channel_number()
+                    ),
+                    value.to_string())
+                )
+            }
+            MotuCommand::Mute(channel) => {
+                Some((
+                    format!(
+                        "/mix/{}/{}/matrix/mute",
+                        channel.channel_type(),
+                        channel.channel_number()
+                    ),
+                    "1".to_string())
+                )
+            }
+            MotuCommand::Unmute(channel) => {
+                Some((
+                    format!(
+                        "/mix/{}/{}/matrix/mute",
+                        channel.channel_type(),
+                        channel.channel_number()
+                    ),
+                    "0".to_string())
+                )
+            }
+            MotuCommand::Init => {
+                return None;
+            }
+        };
+
+        endpoint_value
+    }
     pub fn set_value(&mut self, new_value: f32) {
         match self {
             MotuCommand::Volume { channel:  _, volume } => *volume = new_value,
