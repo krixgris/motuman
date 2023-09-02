@@ -40,11 +40,14 @@ pub struct Motu {
 }
 
 pub fn json_payload(commands: &[MotuCommand]) -> String {
-    let payload = format!("{{{}}}", commands
-        .iter()
-        .filter_map(|c| c.http_command())
-        .collect::<Vec<String>>()
-        .join(", "));
+    let payload = format!(
+        "{{{}}}",
+        commands
+            .iter()
+            .filter_map(|c| c.http_command())
+            .collect::<Vec<String>>()
+            .join(", ")
+    );
     payload
 }
 impl Motu {
@@ -70,21 +73,7 @@ impl Motu {
         if commands.len() >= 10 {
             let client = Client::new();
 
-            let payload = {
-                let long_string = commands
-                    .iter()
-                    .filter_map(|command| command.hash_map())
-                    .map(|hash_map| {
-                        hash_map
-                            .iter()
-                            .map(|(k, v)| format!("\"{}\": {}", k.replace("/mix/", "mix/"), v))
-                            .collect::<Vec<_>>()
-                            .join(", ")
-                    })
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                format!("{{{}}}", long_string)
-            };
+            let payload = json_payload(&commands);
 
             let mut headers = header::HeaderMap::new();
             headers.insert(
@@ -102,11 +91,9 @@ impl Motu {
                 println!("Request failed with status: {}", response.status());
             }
         } else {
-            commands
-                .into_iter()
-               .for_each(|command| {
-                    self.send(command).unwrap();
-                });
+            commands.into_iter().for_each(|command| {
+                self.send(command).unwrap();
+            });
         }
         Ok(())
     }

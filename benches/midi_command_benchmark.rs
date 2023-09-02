@@ -52,6 +52,16 @@ fn bench_midi_command(c: &mut Criterion) {
         });
     });
 }
+fn create_json_payload_realistic() {
+    let mut commands = Vec::new();
+    for i in 0..40 {
+        commands.push(MotuCommand::Volume {
+            channel: Channel::new(i, channel::ChannelType::Chan),
+            volume: 0.5,
+        });
+    }
+    json_payload(&commands);
+}
 fn create_json_payload() {
     let mut commands = Vec::new();
     for i in 0..1000 {
@@ -85,6 +95,11 @@ fn bench_json_payload(c: &mut Criterion) {
     c.bench_function("bench_json_payload", |b| {
         b.iter(|| {
             black_box(create_json_payload());
+        });
+    });
+    c.bench_function("bench_json_payload_realistic", |b| {
+        b.iter(|| {
+            black_box(create_json_payload_realistic());
         });
     });
     c.bench_function("bench_json_payload_vec", |b| {
