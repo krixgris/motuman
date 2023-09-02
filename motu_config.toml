@@ -37,7 +37,7 @@ ip_address = "127.0.0.1:8000"
 [midi_config]
 input = "Faderfox MX12"
 output = "Faderfox MX12"
-midi_channel = 5
+midi_channel = 1
 
 # [midi_mapping_cc]
 # 34 = "vol(2)"

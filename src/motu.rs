@@ -65,7 +65,7 @@ impl Motu {
 
     // runs the vector of commands
     pub fn run(&self, commands: &[MotuCommand]) -> Result<(), Box<dyn Error>> {
-        let commands: Vec<MotuCommand> = commands
+        let commands: Vec<MotuCommand> = commands.clone()
             .iter()
             .flat_map(|command| self.process_commands(command))
             .filter(|command| command.osc_command().is_some())
@@ -143,7 +143,7 @@ impl Motu {
                 });
             }
             _ => {
-                commands.push(*command);
+                commands.push(command.clone());
             }
         }
         commands

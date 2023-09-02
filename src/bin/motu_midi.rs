@@ -68,7 +68,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             let cc_num: u8 = *key as u8;
             let midi_channel_type = (midi_channel) + (0x0B << 4);
             let midi_message: [u8; 3] = [midi_channel_type, cc_num, 0];
-            let midi_command = MidiCommand::new(&midi_message, *value);
+            let midi_command = MidiCommand::new(&midi_message, value.clone());
             midi_command.unwrap()
         })
         .collect();
@@ -80,7 +80,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             let note_num: u8 = *key as u8;
             let midi_channel_type = (midi_channel) + (0x09 << 4);
             let midi_message: [u8; 3] = [midi_channel_type, note_num, 0];
-            let midi_command = MidiCommand::new(&midi_message, *value);
+            let midi_command = MidiCommand::new(&midi_message, value.clone());
             midi_command.unwrap()
         })
         .collect();
@@ -92,7 +92,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             let note_num: u8 = *key as u8;
             let midi_channel_type = (midi_channel) + (0x08 << 4);
             let midi_message: [u8; 3] = [midi_channel_type, note_num, 0];
-            let midi_command = MidiCommand::new(&midi_message, *value);
+            let midi_command = MidiCommand::new(&midi_message, value.clone());
             midi_command.unwrap()
         })
         .collect();

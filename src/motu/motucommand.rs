@@ -4,7 +4,7 @@
 use super::channel::{Channel, ChannelType};
 use std::{collections::HashMap, fmt::Display};
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum MotuCommand {
     EnableMonitoring,
     DisableMonitoring,
@@ -21,6 +21,11 @@ pub enum MotuCommand {
     Mute(Channel),
     Unmute(Channel),
     Init,
+    ToggleSend {
+        channel: Channel,
+        aux_channels: Vec<Channel>,
+        current_send: u8,
+    },
 }
 impl MotuCommand {
     pub fn hash_map(&self) -> Option<HashMap<String, String>> {
@@ -83,6 +88,11 @@ impl MotuCommand {
             MotuCommand::Init => {
                 return None;
             }
+            MotuCommand::ToggleSend {
+                channel,
+                current_send,
+                aux_channels,
+            } => todo!(),
         }
         Some(map)
     }
@@ -127,6 +137,13 @@ impl MotuCommand {
             )),
             MotuCommand::Init => {
                 return None;
+            }
+            MotuCommand::ToggleSend {
+                channel,
+                current_send,
+                aux_channels,
+            } => {
+                todo!()
             }
         };
 
@@ -183,6 +200,11 @@ impl MotuCommand {
             MotuCommand::Init => {
                 return None;
             }
+            MotuCommand::ToggleSend {
+                channel,
+                current_send,
+                aux_channels,
+            } => todo!(),
         };
         osc_command
     }
@@ -247,6 +269,18 @@ impl std::str::FromStr for MotuCommand {
                         },
                         _ => return Err("Invalid send".to_string()),
                     }
+                } else if send.len() < 8 {
+                    let (channel, aux_channel, aux2) = (send[0].parse::<i32>(), send[1].parse::<i32>(), send[2].parse::<i32>());
+                    match (channel, aux_channel, aux2) {
+                        (Ok(channel), Ok(aux_channel), Ok(aux2)) => {
+                            MotuCommand::ToggleSend { 
+                                                    channel: Channel::new(channel, ChannelType::Chan),
+                                                    aux_channels: vec![Channel::new(aux_channel, ChannelType::Aux), Channel::new(aux2, ChannelType::Aux)],
+                                                    current_send: 0,
+                                                }
+                        },
+                        _ => return Err("Invalid send".to_string()),
+                    }
                 } else {
                     return Err("Invalid send".to_string());
                 }
@@ -298,6 +332,11 @@ impl Display for MotuCommand {
             MotuCommand::Mute(channel) => write!(f, "Mute: {}", channel),
             MotuCommand::Unmute(channel) => write!(f, "Unmute: {}", channel),
             MotuCommand::Init => write!(f, "Init"),
+            MotuCommand::ToggleSend {
+                channel,
+                current_send,
+                aux_channels,
+            } => todo!(),
         }
     }
 }
