@@ -132,8 +132,8 @@ impl MotuCommand {
 
         endpoint_value
     }
-    pub fn endpoint_command(&self) -> Option<(String, String)> {
-        let endpoint_value: Option<(String, String)> = match self {
+    pub fn osc_command(&self) -> Option<(String, String)> {
+        let osc_command: Option<(String, String)> = match self {
             MotuCommand::EnableMonitoring => {
                 return None;
             }
@@ -184,8 +184,7 @@ impl MotuCommand {
                 return None;
             }
         };
-
-        endpoint_value
+        osc_command
     }
     pub fn set_value(&mut self, new_value: f32) {
         match self {

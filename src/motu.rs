@@ -68,7 +68,7 @@ impl Motu {
         let commands: Vec<MotuCommand> = commands
             .iter()
             .flat_map(|command| self.process_commands(command))
-            .filter(|command| command.hash_map().is_some())
+            .filter(|command| command.osc_command().is_some())
             .collect();
         if commands.len() >= 10 {
             let client = Client::new();
@@ -172,15 +172,13 @@ impl Motu {
         Ok(())
     }
     pub fn send(&self, command: MotuCommand) -> Result<(), Box<dyn Error>> {
-        let message = match command.hash_map() {
-            Some(message) => message,
+        let (command, value) = match command.osc_command() {
+            Some((command, value)) => (command, value),
             None => return Err("No message found".into()),
         };
-        message.iter().for_each(|(key, value)| {
-            let message = OscMessage::new(key, value.parse::<f32>().unwrap_or_default());
-            let packet = OscPacket::Message(message);
-            let _ = self.client.send(packet);
-        });
+        let message = OscMessage::new(&command, value.parse::<f32>().unwrap_or_default());
+        let packet = OscPacket::Message(message);
+        let _ = self.client.send(packet);
         Ok(())
     }
 }

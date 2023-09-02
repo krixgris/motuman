@@ -2,7 +2,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use motuman::motu::{channel::Channel, json_payload};
 use motuman::motu::{channel, MotuCommand};
 
-fn bench_endpoint_command(c: &mut Criterion) {
+fn bench_osc_command(c: &mut Criterion) {
     let motu_commands: Vec<MotuCommand> = {
         let mut commands = Vec::new();
         for i in 0..1 {
@@ -13,15 +13,15 @@ fn bench_endpoint_command(c: &mut Criterion) {
         }
         commands
     };
-    c.bench_function("motu_endpoint_command", |b| {
+    c.bench_function("motu_osc_command", |b| {
         b.iter(|| {
             black_box(
                 motu_commands
                     .clone()
                     .into_iter()
-                    .filter(|cmd| cmd.endpoint_command().is_some())
+                    .filter(|cmd| cmd.osc_command().is_some())
                     .for_each(|cmd| {
-                        cmd.endpoint_command().unwrap();
+                        cmd.osc_command().unwrap();
                     }),
             )
         });
@@ -83,7 +83,7 @@ fn create_json_payload_vec() {
     let mut pairs: Vec<String> = Vec::new();
 
     for command in commands {
-        if let Some((k, v)) = command.endpoint_command() {
+        if let Some((k, v)) = command.osc_command() {
             let formatted_key = k.replace("/mix/", "mix/");
             pairs.push(format!("\"{}\": {}", formatted_key, v));
         }
@@ -112,7 +112,7 @@ fn bench_json_payload(c: &mut Criterion) {
 criterion_group!(
     benches,
     bench_midi_command,
-    bench_endpoint_command,
+    bench_osc_command,
     bench_json_payload
 );
 criterion_main!(benches);
