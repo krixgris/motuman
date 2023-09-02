@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use motuman::motu::channel::Channel;
+use motuman::motu::{channel::Channel, json_payload};
 use motuman::motu::{channel, MotuCommand};
 
 fn bench_endpoint_command(c: &mut Criterion) {
@@ -13,7 +13,7 @@ fn bench_endpoint_command(c: &mut Criterion) {
         }
         commands
     };
-    c.bench_function("motu_command", |b| {
+    c.bench_function("motu_endpoint_command", |b| {
         b.iter(|| {
             black_box(
                 motu_commands
@@ -38,7 +38,7 @@ fn bench_midi_command(c: &mut Criterion) {
         }
         commands
     };
-    c.bench_function("motu_command", |b| {
+    c.bench_function("bench_hash_map_command", |b| {
         b.iter(|| {
             black_box(
                 motu_commands
@@ -52,6 +52,52 @@ fn bench_midi_command(c: &mut Criterion) {
         });
     });
 }
+fn create_json_payload() {
+    let mut commands = Vec::new();
+    for i in 0..1000 {
+        commands.push(MotuCommand::Volume {
+            channel: Channel::new(i, channel::ChannelType::Chan),
+            volume: 0.5,
+        });
+    }
+    json_payload(&commands);
+}
+fn create_json_payload_vec() {
+    let mut commands = Vec::new();
+    for i in 0..1000 {
+        commands.push(MotuCommand::Volume {
+            channel: Channel::new(i, channel::ChannelType::Chan),
+            volume: 0.5,
+        });
+    }
+    let mut pairs: Vec<String> = Vec::new();
 
-criterion_group!(benches, bench_midi_command, bench_endpoint_command);
+    for command in commands {
+        if let Some((k, v)) = command.endpoint_command() {
+            let formatted_key = k.replace("/mix/", "mix/");
+            pairs.push(format!("\"{}\": {}", formatted_key, v));
+        }
+    }
+
+    let s = format!("{{{}}}", pairs.join(", "));
+}
+fn bench_json_payload(c: &mut Criterion) {
+    c.bench_function("bench_json_payload", |b| {
+        b.iter(|| {
+            black_box(create_json_payload());
+        });
+    });
+    c.bench_function("bench_json_payload_vec", |b| {
+        b.iter(|| {
+            black_box(create_json_payload_vec());
+        });
+    });
+}
+
+criterion_group!(
+    benches,
+    bench_midi_command,
+    bench_endpoint_command,
+    bench_json_payload
+);
 criterion_main!(benches);

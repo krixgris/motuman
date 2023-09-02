@@ -86,10 +86,9 @@ impl MotuCommand {
         }
         Some(map)
     }
-    
-    pub fn endpoint_command(&self) -> Option<(String, String)> {
-        let endpoint_value: Option<(String, String)> =
-        match self {
+
+    pub fn http_command(&self) -> Option<String> {
+        let endpoint_value: Option<String> = match self {
             MotuCommand::EnableMonitoring => {
                 return None;
             }
@@ -99,53 +98,88 @@ impl MotuCommand {
             MotuCommand::PrintSettings => {
                 return None;
             }
-            MotuCommand::Volume { channel, volume } => {
-                Some(
-                    (
-                    format!(
-                        "/mix/{}/{}/matrix/fader",
-                        channel.channel_type(),
-                        channel.channel_number()
-                    ),
-                    volume.to_string()
-                        )
-                        )
-            }
+            MotuCommand::Volume { channel, volume } => Some(format!(
+                "\"mix/{}/{}/matrix/fader\":{}",
+                channel.channel_type(),
+                channel.channel_number(),
+                volume
+            )),
             MotuCommand::Send {
                 channel,
                 aux_channel,
                 value,
-            } => {
-                Some((
-                    format!(
-                        "/mix/{}/{}/matrix/aux/{}/send",
-                        channel.channel_type(),
-                        channel.channel_number(),
-                        aux_channel.channel_number()
-                    ),
-                    value.to_string())
-                )
+            } => Some(format!(
+                "\"mix/{}/{}/matrix/aux/{}/send\":{}",
+                channel.channel_type(),
+                channel.channel_number(),
+                aux_channel.channel_number(),
+                value
+            )),
+            MotuCommand::Mute(channel) => Some(format!(
+                "\"mix/{}/{}/matrix/mute\":1",
+                channel.channel_type(),
+                channel.channel_number()
+            )),
+            MotuCommand::Unmute(channel) => Some(format!(
+                "\"mix/{}/{}/matrix/mute\":0",
+                channel.channel_type(),
+                channel.channel_number()
+            )),
+            MotuCommand::Init => {
+                return None;
             }
-            MotuCommand::Mute(channel) => {
-                Some((
-                    format!(
-                        "/mix/{}/{}/matrix/mute",
-                        channel.channel_type(),
-                        channel.channel_number()
-                    ),
-                    "1".to_string())
-                )
+        };
+
+        endpoint_value
+    }
+    pub fn endpoint_command(&self) -> Option<(String, String)> {
+        let endpoint_value: Option<(String, String)> = match self {
+            MotuCommand::EnableMonitoring => {
+                return None;
             }
-            MotuCommand::Unmute(channel) => {
-                Some((
-                    format!(
-                        "/mix/{}/{}/matrix/mute",
-                        channel.channel_type(),
-                        channel.channel_number()
-                    ),
-                    "0".to_string())
-                )
+            MotuCommand::DisableMonitoring => {
+                return None;
             }
+            MotuCommand::PrintSettings => {
+                return None;
+            }
+            MotuCommand::Volume { channel, volume } => Some((
+                format!(
+                    "/mix/{}/{}/matrix/fader",
+                    channel.channel_type(),
+                    channel.channel_number()
+                ),
+                volume.to_string(),
+            )),
+            MotuCommand::Send {
+                channel,
+                aux_channel,
+                value,
+            } => Some((
+                format!(
+                    "/mix/{}/{}/matrix/aux/{}/send",
+                    channel.channel_type(),
+                    channel.channel_number(),
+                    aux_channel.channel_number()
+                ),
+                value.to_string(),
+            )),
+            MotuCommand::Mute(channel) => Some((
+                format!(
+                    "/mix/{}/{}/matrix/mute",
+                    channel.channel_type(),
+                    channel.channel_number()
+                ),
+                "1".to_string(),
+            )),
+            MotuCommand::Unmute(channel) => Some((
+                format!(
+                    "/mix/{}/{}/matrix/mute",
+                    channel.channel_type(),
+                    channel.channel_number()
+                ),
+                "0".to_string(),
+            )),
             MotuCommand::Init => {
                 return None;
             }
@@ -155,19 +189,16 @@ impl MotuCommand {
     }
     pub fn set_value(&mut self, new_value: f32) {
         match self {
-            MotuCommand::Volume { channel:  _, volume } => *volume = new_value,
+            MotuCommand::Volume { channel: _, volume } => *volume = new_value,
 
             MotuCommand::Send {
                 channel: _,
                 aux_channel: _,
-                value, 
+                value,
             } => *value = new_value,
-            _ =>
-                (),
+            _ => (),
         }
     }
-
-
 
     // pub fn set_midi_value(self, midi_value: u8) -> MotuCommand {
     //     match self {

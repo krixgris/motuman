@@ -39,6 +39,14 @@ pub struct Motu {
     monitor_groups: HashMap<usize, String>,
 }
 
+pub fn json_payload(commands: &[MotuCommand]) -> String {
+    let payload = format!("{{{}}}", commands
+        .iter()
+        .filter_map(|c| c.http_command())
+        .collect::<Vec<String>>()
+        .join(", "));
+    payload
+}
 impl Motu {
     pub fn new(ip: &str, port: &str, config: &Config) -> Result<Motu, Box<dyn Error>> {
         let client = osc::OscClient::new(&format!("{}:{}", ip, port))?;
@@ -51,6 +59,7 @@ impl Motu {
             monitor_groups: config.monitor_groups.clone(),
         })
     }
+
     // runs the vector of commands
     pub fn run(&self, commands: &[MotuCommand]) -> Result<(), Box<dyn Error>> {
         let commands: Vec<MotuCommand> = commands
