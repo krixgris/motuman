@@ -226,7 +226,7 @@ impl std::str::FromStr for MotuCommand {
                 }
             } else if s.contains("unmute") {
                 let unmute = s.replace("unmute(", "").replace(')', "").parse::<i32>();
-                match dbg!(unmute) {
+                match unmute {
                     Ok(unmute) => MotuCommand::Unmute(Channel::new(unmute, ChannelType::Chan)),
                     Err(_) => return Err("Invalid unmute".to_string()),
                 }
@@ -251,7 +251,7 @@ impl std::str::FromStr for MotuCommand {
                 return Err("Invalid command".to_string());
             }
         };
-        Ok(dbg!(motu_command))
+        Ok(motu_command)
     }
 }
 
