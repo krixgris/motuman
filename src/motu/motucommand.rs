@@ -2,7 +2,9 @@
 // Path: src/motu/motu.rs
 
 use super::channel::{Channel, ChannelType};
-use std::{collections::HashMap, fmt::Display};
+use std::fmt::Display;
+
+const MAX_AUX_CHANNELS: usize = 8;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum MotuCommand {
@@ -24,79 +26,10 @@ pub enum MotuCommand {
     ToggleSend {
         channel: Channel,
         aux_channels: Vec<Channel>,
-        current_send: u8,
+        active_sends: u8,
     },
 }
 impl MotuCommand {
-    pub fn hash_map(&self) -> Option<HashMap<String, String>> {
-        let mut map = HashMap::new();
-        match self {
-            MotuCommand::EnableMonitoring => {
-                return None;
-            }
-            MotuCommand::DisableMonitoring => {
-                return None;
-            }
-            MotuCommand::PrintSettings => {
-                return None;
-            }
-            MotuCommand::Volume { channel, volume } => {
-                map.insert(
-                    format!(
-                        "/mix/{}/{}/matrix/fader",
-                        channel.channel_type(),
-                        channel.channel_number()
-                    ),
-                    volume.to_string(),
-                );
-            }
-            MotuCommand::Send {
-                channel,
-                aux_channel,
-                value,
-            } => {
-                map.insert(
-                    format!(
-                        "/mix/{}/{}/matrix/aux/{}/send",
-                        channel.channel_type(),
-                        channel.channel_number(),
-                        aux_channel.channel_number()
-                    ),
-                    value.to_string(),
-                );
-            }
-            MotuCommand::Mute(channel) => {
-                map.insert(
-                    format!(
-                        "/mix/{}/{}/matrix/mute",
-                        channel.channel_type(),
-                        channel.channel_number()
-                    ),
-                    "1".to_string(),
-                );
-            }
-            MotuCommand::Unmute(channel) => {
-                map.insert(
-                    format!(
-                        "/mix/{}/{}/matrix/mute",
-                        channel.channel_type(),
-                        channel.channel_number()
-                    ),
-                    "0".to_string(),
-                );
-            }
-            MotuCommand::Init => {
-                return None;
-            }
-            MotuCommand::ToggleSend {
-                channel,
-                current_send,
-                aux_channels,
-            } => todo!(),
-        }
-        Some(map)
-    }
-
     pub fn http_command(&self) -> Option<String> {
         let endpoint_value: Option<String> = match self {
             MotuCommand::EnableMonitoring => {
@@ -139,9 +72,9 @@ impl MotuCommand {
                 return None;
             }
             MotuCommand::ToggleSend {
-                channel,
-                current_send,
-                aux_channels,
+                channel: _,
+                aux_channels: _,
+                active_sends: _,
             } => {
                 todo!()
             }
@@ -201,10 +134,12 @@ impl MotuCommand {
                 return None;
             }
             MotuCommand::ToggleSend {
-                channel,
-                current_send,
-                aux_channels,
-            } => todo!(),
+                channel: _,
+                aux_channels: _,
+                active_sends: _,
+            } => {
+                return None;
+            }
         };
         osc_command
     }
@@ -217,28 +152,22 @@ impl MotuCommand {
                 aux_channel: _,
                 value,
             } => *value = new_value,
+            MotuCommand::ToggleSend {
+                channel: _,
+                aux_channels,
+                active_sends,
+            } => {
+                let mut mask: u8 = 0b1111_1111;
+                let channel_count = aux_channels.len();
+                mask >>= MAX_AUX_CHANNELS - channel_count;
+                *active_sends += 1;
+                if active_sends > &mut mask {
+                    *active_sends = 0;
+                }
+            }
             _ => (),
         }
     }
-
-    // pub fn set_midi_value(self, midi_value: u8) -> MotuCommand {
-    //     match self {
-    //         MotuCommand::Volume { channel, volume: _ } => MotuCommand::Volume {
-    //             channel,
-    //             volume: midi_value as f32 / 127.0,
-    //         },
-    //         MotuCommand::Send {
-    //             channel,
-    //             aux_channel,
-    //             value: _,
-    //         } => MotuCommand::Send {
-    //             channel,
-    //             aux_channel,
-    //             value: midi_value as f32 / 127.0,
-    //         },
-    //         _ => self,
-    //     }
-    // }
 }
 
 impl std::str::FromStr for MotuCommand {
@@ -269,16 +198,27 @@ impl std::str::FromStr for MotuCommand {
                         },
                         _ => return Err("Invalid send".to_string()),
                     }
-                } else if send.len() < 8 {
-                    let (channel, aux_channel, aux2) = (send[0].parse::<i32>(), send[1].parse::<i32>(), send[2].parse::<i32>());
+                } else if send.len() < MAX_AUX_CHANNELS {
+                    let (channel, aux_channel, aux2) = (
+                        send[0].parse::<i32>(),
+                        send[1].parse::<i32>(),
+                        send[2].parse::<i32>(),
+                    );
                     match (channel, aux_channel, aux2) {
-                        (Ok(channel), Ok(aux_channel), Ok(aux2)) => {
-                            MotuCommand::ToggleSend { 
+                        (Ok(channel), Ok(_aux_channel), Ok(_aux2)) => {
+                            MotuCommand::ToggleSend {
                                                     channel: Channel::new(channel, ChannelType::Chan),
-                                                    aux_channels: vec![Channel::new(aux_channel, ChannelType::Aux), Channel::new(aux2, ChannelType::Aux)],
-                                                    current_send: 0,
+                                                    aux_channels: //vec![Channel::new(aux_channel, ChannelType::Aux), Channel::new(aux2, ChannelType::Aux)],
+                                                    {
+                                                        send.iter()
+                                                            .skip(1) // Skip the first element
+                                                            .map(|s| s.parse::<i32>().map(|aux_channel| Channel::new(aux_channel, ChannelType::Aux)))
+                                                            .filter_map(Result::ok)
+                                                            .collect()
+                                                    },
+                                                    active_sends: 0,
                                                 }
-                        },
+                        }
                         _ => return Err("Invalid send".to_string()),
                     }
                 } else {
@@ -311,7 +251,7 @@ impl std::str::FromStr for MotuCommand {
                 return Err("Invalid command".to_string());
             }
         };
-        Ok(motu_command)
+        Ok(dbg!(motu_command))
     }
 }
 
@@ -334,9 +274,9 @@ impl Display for MotuCommand {
             MotuCommand::Init => write!(f, "Init"),
             MotuCommand::ToggleSend {
                 channel,
-                current_send,
                 aux_channels,
-            } => todo!(),
+                active_sends,
+            } => write!(f, "Send: {} {:#?} {}", channel, aux_channels, active_sends),
         }
     }
 }

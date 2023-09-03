@@ -16,7 +16,7 @@ pub enum MidiCommand {
     Send(usize, usize),
     Init,
     MonitorOn,
-    MonitorOff
+    MonitorOff,
 }
 
 #[derive(Debug, Deserialize, Clone)]

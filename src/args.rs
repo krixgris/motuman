@@ -51,7 +51,11 @@ impl std::convert::From<&str> for IpAddress {
 
 impl fmt::Display for IpAddress {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}.{}.{}.{}", self.octets[0], self.octets[1], self.octets[2], self.octets[3])
+        write!(
+            f,
+            "{}.{}.{}.{}",
+            self.octets[0], self.octets[1], self.octets[2], self.octets[3]
+        )
     }
 }
 
@@ -68,7 +72,7 @@ impl fmt::Display for IpEndpoint {
 }
 
 impl IpEndpoint {
-    pub fn new(address:String) -> Self {
+    pub fn new(address: String) -> Self {
         address.parse::<IpEndpoint>().unwrap()
     }
 }
@@ -105,18 +109,31 @@ impl std::convert::From<&str> for IpEndpoint {
         let parts: Vec<&str> = ip.split(':').collect();
 
         if parts.len() > 2 {
-            return IpEndpoint { address: IpAddress { octets: [0; 4] }, port: 8000 };
+            return IpEndpoint {
+                address: IpAddress { octets: [0; 4] },
+                port: 8000,
+            };
         }
 
         let address = match parts[0].parse::<IpAddress>() {
             Ok(value) => value,
-            Err(_) => return IpEndpoint { address: IpAddress { octets: [0; 4] }, port: 8000 },
+            Err(_) => {
+                return IpEndpoint {
+                    address: IpAddress { octets: [0; 4] },
+                    port: 8000,
+                }
+            }
         };
 
         let port = match parts.get(1) {
             Some(port_str) => match port_str.parse::<u16>() {
                 Ok(value) => value,
-                Err(_) => return IpEndpoint { address: IpAddress { octets: [0; 4] }, port: 8000 },
+                Err(_) => {
+                    return IpEndpoint {
+                        address: IpAddress { octets: [0; 4] },
+                        port: 8000,
+                    }
+                }
             },
             None => 8000,
         };

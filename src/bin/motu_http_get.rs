@@ -42,7 +42,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // let etag = response.headers().get("ETag").unwrap().clone();
             // let body = response.text()?;
             let (etag, body) = (
-                response.headers().get("ETag").expect("No ETag in response").clone(),
+                response
+                    .headers()
+                    .get("ETag")
+                    .expect("No ETag in response")
+                    .clone(),
                 response.text()?,
             );
 

@@ -27,7 +27,6 @@ fn main() {
     let ip_address = args.ip_address;
     let motu_commands = args.motu_commands();
 
-
     // Build the configuration object
     let config = config::Config::build(config_file_name, ip_address).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {err}");

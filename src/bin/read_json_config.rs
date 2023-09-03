@@ -36,13 +36,13 @@ struct ControlChange {
 #[derive(Debug, Deserialize, Serialize)]
 struct NoteOn {
     address: Option<String>,
-    command: Option<String>
+    command: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 struct NoteOff {
     address: Option<String>,
-    command: Option<String>
+    command: Option<String>,
 }
 
 fn main() {
@@ -58,7 +58,7 @@ fn main() {
     let cc_config: HashMap<u8, String> =
     osc_config.osc_config.control_change.into_iter()
     .filter(|(_, cc)| cc.address.is_some())
-    .map(|(key, cc)| 
+    .map(|(key, cc)|
         // (key, cc.address.unwrap())
         {
             // match with condition when address contains /fader and when it contains /send
@@ -75,7 +75,7 @@ fn main() {
     let note_on_config: HashMap<u8, String> =
     osc_config.osc_config.note_on.into_iter()
     .filter(|(_, note_on)| note_on.address.is_some())
-    .map(|(key, note_on)| 
+    .map(|(key, note_on)|
         // (key, cc.address.unwrap())
         {
             // match with condition when address contains /fader and when it contains /send
@@ -92,7 +92,7 @@ fn main() {
     let note_off_config: HashMap<u8, String> =
     osc_config.osc_config.note_off.into_iter()
     .filter(|(_, note_off)| note_off.address.is_some())
-    .map(|(key, note_off)| 
+    .map(|(key, note_off)|
         // (key, cc.address.unwrap())
         {
             // match with condition when address contains /fader and when it contains /send
@@ -106,52 +106,50 @@ fn main() {
     )
     .collect();
 
-// order cc_config by key
-// let cc_config = cc_config.into_iter().collect::<Vec<_>>().sort_by(|a, b| a.0.cmp(&b.0));
-// let note_on_config = note_on_config.into_iter().collect::<Vec<_>>().sort_by(|a, b| a.0.cmp(&b.0));
-// let note_off_config = note_off_config.into_iter().collect::<Vec<_>>().sort_by(|a, b| a.0.cmp(&b.0));
-// println!("{:#?}", cc_config);
-// sort cc_config by key and store into a new hashmap
-// let cc_config = cc_config.into_iter().collect::<Vec<_>>().sort_by(|a, b| a.0.cmp(&b.0));
+    // order cc_config by key
+    // let cc_config = cc_config.into_iter().collect::<Vec<_>>().sort_by(|a, b| a.0.cmp(&b.0));
+    // let note_on_config = note_on_config.into_iter().collect::<Vec<_>>().sort_by(|a, b| a.0.cmp(&b.0));
+    // let note_off_config = note_off_config.into_iter().collect::<Vec<_>>().sort_by(|a, b| a.0.cmp(&b.0));
+    // println!("{:#?}", cc_config);
+    // sort cc_config by key and store into a new hashmap
+    // let cc_config = cc_config.into_iter().collect::<Vec<_>>().sort_by(|a, b| a.0.cmp(&b.0));
 
-let mut sorted_cc:Vec<_> = cc_config.into_iter().collect();
-sorted_cc.sort_by(|a, b| a.0.cmp(&b.0));
-// println!("{:#?}", sorted_cc);
-// let cc_config: HashMap<u8, String> = sorted_cc.into_iter().collect();
-let mut sorted_note_on:Vec<_> = note_on_config.into_iter().collect();
-sorted_note_on.sort_by(|a, b| a.0.cmp(&b.0));
-// let note_on_config: HashMap<u8, String> = sorted_note_on.into_iter().collect();
-// println!("{:#?}", sorted_note_on);
-let mut sorted_note_off:Vec<_> = note_off_config.into_iter().collect();
-sorted_note_off.sort_by(|a, b| a.0.cmp(&b.0));
-// println!("{:#?}", sorted_note_off);
-// let note_off_config: HashMap<u8, String> = sorted_note_off.into_iter().collect();
-// let mut cc_config: HashMap<u8, String> = HashMap::new();
-// let mut note_on_config: HashMap<u8, String> = HashMap::new();
-// let mut note_off_config: HashMap<u8, String> = HashMap::new();
-// for (key, cc) in sorted_cc {
-//     cc_config.insert(key, cc);
-// }
-println!("[midi_mapping_cc]");
-for (key, cc) in sorted_cc {
-    // cc_config.insert(key, cc);
-    println!("{} = \"{}\"", key, cc);
-}
-println!("[midi_mapping_note_on]");
-for (key, note_on) in sorted_note_on {
-    // note_on_config.insert(key, note_on);
-    println!("{} = \"{}\"", key, note_on);
-}
-println!("[midi_mapping_note_off]");
-for (key, note_off) in sorted_note_off {
-    // note_off_config.insert(key, note_off);
-    println!("{} = \"{}\"", key, note_off);
-}
+    let mut sorted_cc: Vec<_> = cc_config.into_iter().collect();
+    sorted_cc.sort_by(|a, b| a.0.cmp(&b.0));
+    // println!("{:#?}", sorted_cc);
+    // let cc_config: HashMap<u8, String> = sorted_cc.into_iter().collect();
+    let mut sorted_note_on: Vec<_> = note_on_config.into_iter().collect();
+    sorted_note_on.sort_by(|a, b| a.0.cmp(&b.0));
+    // let note_on_config: HashMap<u8, String> = sorted_note_on.into_iter().collect();
+    // println!("{:#?}", sorted_note_on);
+    let mut sorted_note_off: Vec<_> = note_off_config.into_iter().collect();
+    sorted_note_off.sort_by(|a, b| a.0.cmp(&b.0));
+    // println!("{:#?}", sorted_note_off);
+    // let note_off_config: HashMap<u8, String> = sorted_note_off.into_iter().collect();
+    // let mut cc_config: HashMap<u8, String> = HashMap::new();
+    // let mut note_on_config: HashMap<u8, String> = HashMap::new();
+    // let mut note_off_config: HashMap<u8, String> = HashMap::new();
+    // for (key, cc) in sorted_cc {
+    //     cc_config.insert(key, cc);
+    // }
+    println!("[midi_mapping_cc]");
+    for (key, cc) in sorted_cc {
+        // cc_config.insert(key, cc);
+        println!("{} = \"{}\"", key, cc);
+    }
+    println!("[midi_mapping_note_on]");
+    for (key, note_on) in sorted_note_on {
+        // note_on_config.insert(key, note_on);
+        println!("{} = \"{}\"", key, note_on);
+    }
+    println!("[midi_mapping_note_off]");
+    for (key, note_off) in sorted_note_off {
+        // note_off_config.insert(key, note_off);
+        println!("{} = \"{}\"", key, note_off);
+    }
 
-
-// println!("{:#?}", cc_config);
-// println!("{:#?}", note_on_config);
-// println!("{:#?}", note_off_config);
+    // println!("{:#?}", cc_config);
+    // println!("{:#?}", note_on_config);
+    // println!("{:#?}", note_off_config);
     // .for_each(|(key, cc)| println!("key: {}, cc: {:#?}", key, cc));
-
 }

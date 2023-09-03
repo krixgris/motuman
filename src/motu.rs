@@ -65,7 +65,8 @@ impl Motu {
 
     // runs the vector of commands
     pub fn run(&self, commands: &[MotuCommand]) -> Result<(), Box<dyn Error>> {
-        let commands: Vec<MotuCommand> = commands.clone()
+        let commands: Vec<MotuCommand> = commands
+            .clone()
             .iter()
             .flat_map(|command| self.process_commands(command))
             .filter(|command| command.osc_command().is_some())
@@ -139,6 +140,26 @@ impl Motu {
                 self.monitor_groups.iter().for_each(|(group_index, _)| {
                     let command =
                         MotuCommand::Unmute(Channel::new(*group_index as i32, ChannelType::Group));
+                    commands.push(command);
+                });
+            }
+            MotuCommand::ToggleSend {
+                active_sends,
+                channel,
+                aux_channels,
+            } => {
+                let channel_count = aux_channels.len();
+                println!("Active Sends: {:#b}", active_sends);
+                (0..channel_count).for_each(|i| {
+                    let mut channel_index_mask: u8 = 0b0000_0001;
+                    channel_index_mask <<= i;
+                    let value = (channel_index_mask & *active_sends) >> i;
+                    println!("{}: {}", aux_channels[i], value);
+                    let command = MotuCommand::Send {
+                        channel: *channel,
+                        aux_channel: aux_channels[i],
+                        value: value as f32,
+                    };
                     commands.push(command);
                 });
             }

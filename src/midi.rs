@@ -1,2 +1,2 @@
-pub mod miditype;
 pub mod midicommand;
+pub mod miditype;

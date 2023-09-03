@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     // use super::*;
-    use crate::*;
     use crate::args::{Args, IpEndpoint};
+    use crate::*;
 
     #[test]
     fn test_config_file_name() {
@@ -130,6 +130,9 @@ mod tests {
             init: false,
             verbose: false,
         };
-        assert_ne!(args.ip_address.unwrap().address.to_string(), "192.168.256.2");
+        assert_ne!(
+            args.ip_address.unwrap().address.to_string(),
+            "192.168.256.2"
+        );
     }
 }

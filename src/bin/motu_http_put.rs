@@ -27,21 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ];
 
     // iter through motu_commands and filter out the .hash_map().is_some(), and then create one long string with comma separated key: value pairs
-    let payload = {
-        let long_string = motu_commands
-            .iter()
-            .filter_map(|command| command.hash_map())
-            .map(|hash_map| {
-                hash_map
-                    .iter()
-                    .map(|(k, v)| format!("\"{}\": {}", k, v))
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            })
-            .collect::<Vec<_>>()
-            .join(", ");
-        format!("{{{}}}", long_string)
-    };
+    let payload = "";
 
     println!("{}", payload);
 
