@@ -149,12 +149,12 @@ impl Motu {
                 aux_channels,
             } => {
                 let channel_count = aux_channels.len();
-                println!("Active Sends: {:#b}", active_sends);
+                //println!("Active Sends: {:#b}", active_sends);
                 (0..channel_count).for_each(|i| {
                     let mut channel_index_mask: u8 = 0b0000_0001;
                     channel_index_mask <<= i;
                     let value = (channel_index_mask & *active_sends) >> i;
-                    println!("{}: {}", aux_channels[i], value);
+                    //println!("{}: {}", aux_channels[i], value);
                     let command = MotuCommand::Send {
                         channel: *channel,
                         aux_channel: aux_channels[i],
